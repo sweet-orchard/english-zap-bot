@@ -1,0 +1,36 @@
+# Bytecode
+**/__pycache__/**
+*.pyc
+
+# Virtual Environments
+venv/
+venv-telegram-bot/
+.venv/
+
+# Environment Variables (SENSITIVE)
+.env
+.env.local
+
+# User Data & Databases
+user_words/
+english_zap_bot_data.json
+*.db
+*.sqlite
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Large Archives & Backups
+*.zip
+*.tar.gz
+*.backup
+raspberry_pi_bots_backup.zip
+
+# IDE Files
+.vscode/
+.idea/
+
+# Local Logs
+*.log
+nohup.out

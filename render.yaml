@@ -1,0 +1,35 @@
+# Render Blueprint for English Zap Bot
+# This file tells Render how to deploy your services automatically.
+
+services:
+  # 1. The FastAPI API Server
+  - type: web
+    name: english-zap-api
+    env: python
+    buildCommand: pip install -r "english zap bot/requirements.txt"
+    startCommand: cd "english zap bot" && uvicorn api_server:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PORT
+        value: 10000
+      - fromGroup: english-zap-secrets
+
+  # 2. The Telegram Bot Worker
+  - type: worker
+    name: english-zap-bot
+    env: python
+    buildCommand: pip install -r "english zap bot/requirements.txt"
+    startCommand: cd "english zap bot" && python english_zap_bot.py
+    envVars:
+      - fromGroup: english-zap-secrets
+
+# Environment Variables Group
+# You will need to create this group in the Render Dashboard
+envVarGroups:
+  - name: english-zap-secrets
+    envVars:
+      - key: ENGLISH_ZAP_BOT_TOKEN
+        sync: false # Set manually in Render UI
+      - key: ENGLISH_ZAP_GEMINI_KEY
+        sync: false # Set manually in Render UI
+      - key: ENGLISH_ZAP_WEBAPP_URL
+        sync: false # This will be the URL of the 'english-zap-api' service

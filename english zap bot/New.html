@@ -1,0 +1,972 @@
+
+
+
+english_zap_bot_data.json
+6 lines
+
+json
+
+
+
+<!DOCTYPE html> <html lang="uk"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>⚡ English Zap</title> <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&di
+
+pasted
+
+
+
+english_zap_bot.py
+py
+
+
+that's nice, but i want you completely redesign the website, also the audio doesn't work... i'd like you to use edge tts that i've used for my telegram bot. and also i want you to use the words only the users get from telegram bot, from google api that they get.... and so later i can synchronise the data between telegram and webpage. and then also think where the users data will be stores, like maybe create additional json for the words they got from telegram and something like that.
+
+
+Pasted content
+48.54 KB •944 lines
+•
+Formatting may be inconsistent from source
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ English Zap</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#080a0f;
+  --s1:#0e1117;
+  --s2:#141820;
+  --s3:#1b2030;
+  --border:#232838;
+  --border2:#2d3447;
+
+  /* accent palette */
+  --zap:#f5c842;
+  --zap-dim:rgba(245,200,66,.12);
+  --mint:#34d399;
+  --mint-dim:rgba(52,211,153,.12);
+  --coral:#f87171;
+  --coral-dim:rgba(248,113,113,.12);
+  --sky:#38bdf8;
+  --sky-dim:rgba(56,189,248,.12);
+  --violet:#a78bfa;
+  --violet-dim:rgba(167,139,250,.12);
+  --rose:#fb7185;
+  --rose-dim:rgba(251,113,133,.12);
+  --orange:#fb923c;
+  --orange-dim:rgba(251,146,60,.12);
+
+  --text:#dde2ee;
+  --muted:#5a647a;
+  --muted2:#8892a4;
+
+  --f:      'Plus Jakarta Sans', sans-serif;
+  --mono:   'JetBrains Mono', monospace;
+
+  --r8:8px; --r12:12px; --r16:16px; --r20:20px; --r99:99px;
+}
+
+body{font-family:var(--f);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.5}
+
+/* ── noise ── */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* ── header ── */
+header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(8,10,15,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.logo{font-size:17px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:6px}
+.logo-zap{color:var(--zap)}
+.hd-right{display:flex;align-items:center;gap:10px}
+.lvl-chip{font-family:var(--mono);font-size:10px;background:var(--zap);color:#000;border-radius:5px;padding:3px 8px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.usr-pill{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r99);padding:5px 12px 5px 5px;font-size:13px;font-weight:600}
+.ava{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--sky));display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+
+/* ── layout ── */
+main{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+
+/* ── section header ── */
+.sh{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+
+/* ── stat cards ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.sc{background:var(--s1);border:1px solid var(--border);border-radius:var(--r16);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.sc:hover{border-color:var(--border2);transform:translateY(-2px)}
+.sc-glow{position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.6}
+.sc-label{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.sc-num{font-size:32px;font-weight:800;line-height:1;letter-spacing:-1px}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* ── progress ── */
+.prog-wrap{background:var(--s1);border:1px solid var(--border);border-radius:var(--r16);padding:20px 24px;margin-bottom:24px}
+.prog-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.prog-row:last-child{margin-bottom:0}
+.prog-lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);width:80px;flex-shrink:0}
+.track{flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.23,1,.32,1)}
+.fill-z{background:linear-gradient(90deg,var(--violet),#c4b5fd)}
+.fill-b{background:linear-gradient(90deg,var(--sky),#7dd3fc)}
+.fill-i{background:linear-gradient(90deg,var(--mint),#6ee7b7)}
+.fill-a{background:linear-gradient(90deg,var(--zap),#fde68a)}
+.prog-ct{font-family:var(--mono);font-size:10px;color:var(--muted);width:52px;text-align:right;flex-shrink:0}
+
+/* ── tabs ── */
+.tabs{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:20px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r12);padding:4px;width:fit-content}
+.tab{font-size:12px;font-weight:700;padding:7px 14px;border-radius:var(--r8);border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:-.1px}
+.tab:hover:not(.active){color:var(--text)}
+.tab.active{background:var(--zap);color:#000}
+.panel{display:none}.panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── exercise card ── */
+.ex-card{border-radius:var(--r20);padding:28px 28px 24px;position:relative;overflow:hidden}
+.ex-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+
+/* colour themes per exercise */
+.theme-mcq   {background:var(--s1);border:1px solid var(--border)}
+.theme-mcq::before{background:linear-gradient(90deg,var(--sky),var(--violet))}
+
+.theme-fill  {background:var(--s1);border:1px solid var(--border)}
+.theme-fill::before{background:linear-gradient(90deg,var(--mint),var(--sky))}
+
+.theme-scramble{background:var(--s1);border:1px solid var(--border)}
+.theme-scramble::before{background:linear-gradient(90deg,var(--orange),var(--rose))}
+
+.theme-dict  {background:var(--s1);border:1px solid var(--border)}
+.theme-dict::before{background:linear-gradient(90deg,var(--violet),var(--rose))}
+
+.theme-match {background:var(--s1);border:1px solid var(--border)}
+.theme-match::before{background:linear-gradient(90deg,var(--zap),var(--mint))}
+
+.theme-anki  {background:var(--s1);border:1px solid var(--border)}
+.theme-anki::before{background:linear-gradient(90deg,var(--coral),var(--orange))}
+
+.theme-vocab {background:var(--s1);border:1px solid var(--border)}
+.theme-vocab::before{background:linear-gradient(90deg,var(--zap),var(--sky))}
+
+.ex-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;padding:4px 10px;border-radius:var(--r99);margin-bottom:14px;font-weight:600}
+.badge-mcq     {background:var(--sky-dim);color:var(--sky)}
+.badge-fill    {background:var(--mint-dim);color:var(--mint)}
+.badge-scramble{background:var(--orange-dim);color:var(--orange)}
+.badge-dict    {background:var(--violet-dim);color:var(--violet)}
+.badge-match   {background:var(--zap-dim);color:var(--zap)}
+.badge-anki    {background:var(--coral-dim);color:var(--coral)}
+.badge-vocab   {background:var(--sky-dim);color:var(--sky)}
+
+.ex-q{font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.5px;margin-bottom:22px}
+.ex-q .hl{color:var(--zap)}
+.ex-q .hl-sky{color:var(--sky)}
+.ex-q .hl-mint{color:var(--mint)}
+.ex-q .hl-violet{color:var(--violet)}
+
+/* ── options ── */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+@media(max-width:480px){.opts{grid-template-columns:1fr}}
+.opt{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r12);padding:13px 16px;text-align:left;cursor:pointer;transition:all .14s;font-family:var(--f);font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:10px}
+.opt:hover:not(:disabled){border-color:var(--sky);background:var(--sky-dim);transform:translateX(3px)}
+.opt.correct{border-color:var(--mint)!important;background:var(--mint-dim)!important;color:var(--mint)!important}
+.opt.wrong  {border-color:var(--coral)!important;background:var(--coral-dim)!important;color:var(--coral)!important}
+.opt:disabled{cursor:default}
+.opt-k{font-family:var(--mono);font-size:10px;background:var(--border);border-radius:4px;padding:2px 6px;flex-shrink:0;font-weight:500}
+.opt.correct .opt-k{background:rgba(52,211,153,.2)}
+.opt.wrong   .opt-k{background:rgba(248,113,113,.2)}
+
+/* ── feedback ── */
+.fb{display:none;padding:14px 18px;border-radius:var(--r12);margin-bottom:16px;font-size:14px;font-weight:600;line-height:1.55}
+.fb.ok {display:block;background:var(--mint-dim);border:1px solid rgba(52,211,153,.3);color:var(--mint);animation:slideUp .25s ease}
+.fb.bad{display:block;background:var(--coral-dim);border:1px solid rgba(248,113,113,.3);color:var(--coral);animation:slideUp .25s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── action row ── */
+.ar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:4px}
+.score-txt{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.score-txt strong{color:var(--zap)}
+.btn-next{font-family:var(--f);font-size:13px;font-weight:700;background:var(--zap);color:#000;border:none;border-radius:var(--r8);padding:10px 20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;letter-spacing:-.2px}
+.btn-next:hover{background:#fde68a;transform:translateY(-1px)}
+.btn-next:disabled{opacity:.35;cursor:default;transform:none}
+.btn-ghost{font-family:var(--f);font-size:13px;font-weight:700;background:transparent;color:var(--muted2);border:1.5px solid var(--border);border-radius:var(--r8);padding:9px 18px;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── text input ── */
+.tx-inp{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r12);padding:14px 18px;font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:14px;letter-spacing:.5px}
+.tx-inp:focus{border-color:var(--mint)}
+.tx-inp.ok {border-color:var(--mint)}
+.tx-inp.bad{border-color:var(--coral)}
+.btn-check{font-family:var(--f);font-size:13px;font-weight:700;background:transparent;color:var(--mint);border:1.5px solid var(--mint);border-radius:var(--r8);padding:9px 18px;cursor:pointer;transition:all .15s;margin-bottom:14px}
+.btn-check:hover{background:var(--mint-dim)}
+
+/* ── scramble tiles ── */
+.scr-answer{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:4px;color:var(--text);margin-bottom:14px;min-height:42px;padding:10px 0;border-bottom:2px solid var(--border)}
+.tile-bank{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding:14px;background:var(--s2);border-radius:var(--r12);border:1.5px dashed var(--border);min-height:52px}
+.tile{font-family:var(--mono);font-size:15px;font-weight:600;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r8);padding:8px 13px;cursor:pointer;transition:all .14s;user-select:none;color:var(--text);text-transform:uppercase}
+.tile:hover{border-color:var(--orange);background:var(--orange-dim);transform:translateY(-2px)}
+.tile.used{opacity:.25;pointer-events:none}
+
+/* ── dictation ── */
+.dict-orb{display:flex;align-items:center;justify-content:center;margin:10px 0 24px}
+.orb{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--rose));display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;transition:all .2s;box-shadow:0 0 0 0 rgba(167,139,250,.4)}
+.orb:hover{transform:scale(1.08);box-shadow:0 0 0 12px rgba(167,139,250,.15)}
+.orb.playing{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.5)}50%{box-shadow:0 0 0 18px rgba(167,139,250,.08)}}
+.dict-hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;font-family:var(--mono)}
+
+/* ── matching ── */
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.match-col{display:flex;flex-direction:column;gap:8px}
+.match-item{background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r12);padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
+.match-item:hover:not(.locked){border-color:var(--zap);background:var(--zap-dim);transform:scale(1.02)}
+.match-item.selected{border-color:var(--zap);background:var(--zap-dim);color:var(--zap)}
+.match-item.matched{border-color:var(--mint);background:var(--mint-dim);color:var(--mint);cursor:default}
+.match-item.wrong-flash{border-color:var(--coral);background:var(--coral-dim);animation:shake .35s ease}
+.match-item.locked{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ── anki card ── */
+.anki-card{perspective:800px;margin-bottom:20px}
+.anki-inner{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r20);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;cursor:pointer;transition:all .25s}
+.anki-inner:hover{border-color:var(--border2)}
+.anki-word{font-size:36px;font-weight:800;letter-spacing:-1px;color:var(--zap);margin-bottom:8px}
+.anki-hint{font-size:13px;color:var(--muted);font-family:var(--mono)}
+.anki-back{display:none}
+.anki-back.show{display:block;animation:fadeUp .3s ease}
+.anki-uk{font-size:22px;font-weight:700;color:var(--text);margin:12px 0 6px}
+.anki-ex{font-size:13px;color:var(--muted2);font-style:italic;font-family:var(--mono)}
+.anki-rate{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn-rate{font-family:var(--f);font-size:12px;font-weight:700;border:none;border-radius:var(--r8);padding:10px 18px;cursor:pointer;transition:all .15s;letter-spacing:-.1px}
+.btn-rate:hover{transform:translateY(-2px)}
+.rate-again{background:var(--coral-dim);color:var(--coral);border:1.5px solid rgba(248,113,113,.3)}
+.rate-hard {background:var(--orange-dim);color:var(--orange);border:1.5px solid rgba(251,146,60,.3)}
+.rate-good {background:var(--mint-dim);color:var(--mint);border:1.5px solid rgba(52,211,153,.3)}
+.rate-easy {background:var(--sky-dim);color:var(--sky);border:1.5px solid rgba(56,189,248,.3)}
+.anki-due{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.due-badge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:var(--r99);font-weight:500}
+.due-now{background:var(--coral-dim);color:var(--coral)}
+.due-later{background:var(--sky-dim);color:var(--sky)}
+.due-done{background:var(--mint-dim);color:var(--mint)}
+
+/* ── vocab card ── */
+.voc-word{font-size:38px;font-weight:800;letter-spacing:-1.5px;color:var(--zap);margin-bottom:4px}
+.voc-trans{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px}
+.voc-ex{font-size:13px;color:var(--muted2);font-family:var(--mono);font-style:italic;margin-bottom:20px;line-height:1.6}
+
+/* ── streak bar ── */
+.streak-wrap{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.sd{width:32px;height:32px;border-radius:var(--r8);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s;background:var(--s2)}
+.sd.hit{background:var(--zap);border-color:var(--zap)}
+.sd.miss{background:var(--coral-dim);border-color:rgba(248,113,113,.3)}
+
+/* ── word table ── */
+.wtbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.wtbl th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)}
+.wtbl td{padding:10px 12px;border-bottom:1px solid rgba(35,40,56,.6)}
+.wtbl tr:hover td{background:rgba(245,200,66,.02)}
+.w-en{font-family:var(--mono);font-weight:600;color:var(--zap)}
+.w-uk{color:var(--muted2);font-size:12px}
+.w-lvl{font-family:var(--mono);font-size:9px;background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--muted)}
+.w-due{font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+/* ── loading ── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;gap:14px}
+.spin{width:36px;height:36px;border:2.5px solid var(--border);border-top-color:var(--zap);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:13px;color:var(--muted);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡ <span class="logo-zap">Zap</span> English</div>
+  <div class="hd-right">
+    <span class="lvl-chip" id="hLvl">zero</span>
+    <div class="usr-pill">
+      <div class="ava">🧠</div>
+      <span id="hName">…</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- greeting -->
+  <div style="margin-bottom:26px">
+    <div style="font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.2">Привіт, <span style="color:var(--zap)" id="gName">Learner</span>! 👋</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px">Твій прогрес та щоденні вправи</div>
+  </div>
+
+  <!-- stats -->
+  <div class="stats">
+    <div class="sc">
+      <div class="sc-glow" style="background:radial-gradient(circle,rgba(245,200,66,.3),transparent 70%)"></div>
+      <div class="sc-label">Слів вивчено</div>
+      <div class="sc-num" id="sLearned" style="color:var(--zap)">0</div>
+      <div class="sc-sub">загалом</div>
+    </div>
+    <div class="sc">
+      <div class="sc-glow" style="background:radial-gradient(circle,rgba(248,113,113,.3),transparent 70%)"></div>
+      <div class="sc-label">Треба повторити</div>
+      <div class="sc-num" id="sDue" style="color:var(--coral)">0</div>
+      <div class="sc-sub">зараз в черзі</div>
+    </div>
+    <div class="sc">
+      <div class="sc-glow" style="background:radial-gradient(circle,rgba(52,211,153,.3),transparent 70%)"></div>
+      <div class="sc-label">Точність</div>
+      <div class="sc-num" id="sAcc" style="color:var(--mint)">—</div>
+      <div class="sc-sub" id="sAccSub">цієї сесії</div>
+    </div>
+    <div class="sc">
+      <div class="sc-glow" style="background:radial-gradient(circle,rgba(56,189,248,.3),transparent 70%)"></div>
+      <div class="sc-label">Стрік</div>
+      <div class="sc-num" id="sStreak" style="color:var(--sky)">0</div>
+      <div class="sc-sub">днів поспіль</div>
+    </div>
+  </div>
+
+  <!-- progress -->
+  <div class="prog-wrap" style="margin-bottom:22px">
+    <div class="sh" style="margin-bottom:14px">📊 Прогрес</div>
+    <div class="prog-row"><div class="prog-lbl">Zero</div><div class="track"><div class="fill fill-z" id="pZ" style="width:0%"></div></div><div class="prog-ct" id="cZ">0/37</div></div>
+    <div class="prog-row"><div class="prog-lbl">Beginner</div><div class="track"><div class="fill fill-b" id="pB" style="width:0%"></div></div><div class="prog-ct" id="cB">0/150</div></div>
+    <div class="prog-row"><div class="prog-lbl">Intermediate</div><div class="track"><div class="fill fill-i" id="pI" style="width:0%"></div></div><div class="prog-ct" id="cI">0/300</div></div>
+    <div class="prog-row"><div class="prog-lbl">Advanced</div><div class="track"><div class="fill fill-a" id="pA" style="width:0%"></div></div><div class="prog-ct" id="cA">0/500</div></div>
+  </div>
+
+  <!-- streak dots -->
+  <div class="streak-wrap" id="streakBar"></div>
+
+  <!-- tabs -->
+  <div class="tabs">
+    <button class="tab active"  onclick="sw('vocab')">📖 Слово дня</button>
+    <button class="tab"         onclick="sw('anki')">🗂 Анкі</button>
+    <button class="tab"         onclick="sw('mcq')">🧩 Вибір</button>
+    <button class="tab"         onclick="sw('fill')">✍️ Написати</button>
+    <button class="tab"         onclick="sw('dict')">🎧 Диктант</button>
+    <button class="tab"         onclick="sw('scramble')">🔀 Скласти</button>
+    <button class="tab"         onclick="sw('match')">🔗 Пари</button>
+    <button class="tab"         onclick="sw('words')">📚 Мої слова</button>
+  </div>
+
+  <!-- VOCAB -->
+  <div id="tab-vocab" class="panel active">
+    <div class="ex-card theme-vocab">
+      <div class="ex-badge badge-vocab">📖 Слово дня</div>
+      <div id="vocabBody"><div class="loading"><div class="spin"></div><p>завантаження…</p></div></div>
+    </div>
+  </div>
+
+  <!-- ANKI -->
+  <div id="tab-anki" class="panel">
+    <div class="ex-card theme-anki">
+      <div class="ex-badge badge-anki">🗂 Spaced Repetition — Анкі</div>
+      <div id="ankiBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- MCQ -->
+  <div id="tab-mcq" class="panel">
+    <div class="ex-card theme-mcq">
+      <div class="ex-badge badge-mcq">🧩 Вибір правильної відповіді</div>
+      <div id="mcqBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- FILL -->
+  <div id="tab-fill" class="panel">
+    <div class="ex-card theme-fill">
+      <div class="ex-badge badge-fill">✍️ Напиши слово</div>
+      <div id="fillBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- DICTATION -->
+  <div id="tab-dict" class="panel">
+    <div class="ex-card theme-dict">
+      <div class="ex-badge badge-dict">🎧 Диктант — Послухай і напиши</div>
+      <div id="dictBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- SCRAMBLE -->
+  <div id="tab-scramble" class="panel">
+    <div class="ex-card theme-scramble">
+      <div class="ex-badge badge-scramble">🔀 Склади слово з літер</div>
+      <div id="scrambleBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- MATCH -->
+  <div id="tab-match" class="panel">
+    <div class="ex-card theme-match">
+      <div class="ex-badge badge-match">🔗 З'єднай пари</div>
+      <div id="matchBody"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- WORDS LIST -->
+  <div id="tab-words" class="panel">
+    <div class="ex-card theme-vocab" style="padding:24px">
+      <div class="ex-badge badge-vocab">📚 Мої слова</div>
+      <table class="wtbl">
+        <thead><tr><th>СЛОВО</th><th>ПЕРЕКЛАД</th><th>РІВЕНЬ</th><th>НАСТУПНЕ</th></tr></thead>
+        <tbody id="wTbody"><tr><td colspan="4" style="color:var(--muted);text-align:center;padding:32px;font-size:12px">Ще немає слів — зароби їх у вправах!</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════
+//  WORD POOL
+// ════════════════════════════════
+const POOL = {
+  zero:[
+    {en:'the',uk:'визначений артикль',ex:'The cat is on the table.'},
+    {en:'a',uk:'неозначений артикль',ex:'I have a dog.'},
+    {en:'is',uk:'є (3 особа)',ex:'She is happy.'},
+    {en:'are',uk:'є (множина)',ex:'They are students.'},
+    {en:'and',uk:'і / та',ex:'I like cats and dogs.'},
+    {en:'go',uk:'йти / їхати',ex:'I go to school every day.'},
+    {en:'have',uk:'мати',ex:'I have a book.'},
+    {en:'what',uk:'що / який',ex:'What is your name?'},
+    {en:'you',uk:'ти / ви',ex:'You are very kind.'},
+    {en:'this',uk:'це / цей',ex:'This is my house.'},
+    {en:'how',uk:'як',ex:'How are you?'},
+    {en:'can',uk:'можу / вмію',ex:'I can swim.'},
+    {en:'my',uk:'мій / моя / моє',ex:'This is my phone.'},
+    {en:'we',uk:'ми',ex:'We are friends.'},
+    {en:'see',uk:'бачити',ex:'I can see the stars.'},
+    {en:'do',uk:'робити',ex:'I do my homework.'},
+    {en:'like',uk:'любити',ex:'I like coffee.'},
+    {en:'want',uk:'хотіти',ex:'I want water please.'},
+    {en:'he',uk:'він',ex:'He is my brother.'},
+    {en:'she',uk:'вона',ex:'She is my sister.'},
+  ],
+  beginner:[
+    {en:'apple',uk:'яблуко',ex:'I eat an apple every day.'},
+    {en:'water',uk:'вода',ex:'Please give me some water.'},
+    {en:'family',uk:"сім'я",ex:'My family is very big.'},
+    {en:'school',uk:'школа',ex:'I go to school by bus.'},
+    {en:'happy',uk:'щасливий',ex:'She looks very happy today.'},
+    {en:'friend',uk:'друг',ex:'He is my best friend.'},
+    {en:'book',uk:'книга',ex:'I am reading a good book.'},
+    {en:'house',uk:'будинок',ex:'We live in a big house.'},
+    {en:'cat',uk:'кіт',ex:'The cat is sleeping.'},
+    {en:'run',uk:'бігти',ex:'I run every morning.'},
+    {en:'eat',uk:'їсти',ex:'We eat lunch at noon.'},
+    {en:'sleep',uk:'спати',ex:'I sleep 8 hours a night.'},
+    {en:'big',uk:'великий',ex:'That is a big elephant.'},
+    {en:'small',uk:'маленький',ex:'She has a small dog.'},
+    {en:'day',uk:'день',ex:'It is a beautiful day.'},
+    {en:'sun',uk:'сонце',ex:'The sun is shining.'},
+    {en:'rain',uk:'дощ',ex:'I love the rain.'},
+    {en:'good',uk:'добрий / хороший',ex:'You did a good job.'},
+    {en:'time',uk:'час',ex:'What time is it?'},
+    {en:'work',uk:'працювати / робота',ex:'I work every day.'},
+  ],
+  intermediate:[
+    {en:'ambitious',uk:'амбіційний',ex:'She is an ambitious young woman.'},
+    {en:'suggest',uk:'пропонувати',ex:'I suggest we take a break.'},
+    {en:'experience',uk:'досвід',ex:'He has a lot of experience in marketing.'},
+    {en:'gradually',uk:'поступово',ex:'The situation is gradually improving.'},
+    {en:'efficient',uk:'ефективний',ex:'We need a more efficient system.'},
+    {en:'conflict',uk:'конфлікт',ex:'They tried to avoid the conflict.'},
+    {en:'advantage',uk:'перевага',ex:'Being bilingual is a big advantage.'},
+    {en:'curious',uk:'цікавий / допитливий',ex:'Kids are naturally curious.'},
+    {en:'challenge',uk:'виклик',ex:'Learning a language is a challenge.'},
+    {en:'improve',uk:'покращувати',ex:'Practice helps improve your English.'},
+    {en:'achieve',uk:'досягти',ex:'She worked hard to achieve her goals.'},
+    {en:'attitude',uk:'ставлення / позиція',ex:'Your attitude determines your success.'},
+  ],
+  advanced:[
+    {en:'ephemeral',uk:'ефемерний',ex:'Fame is often ephemeral.'},
+    {en:'eloquent',uk:'красномовний',ex:'She gave an eloquent speech.'},
+    {en:'paradox',uk:'парадокс',ex:'It is a strange paradox of modern life.'},
+    {en:'melancholy',uk:'меланхолія',ex:'A sense of melancholy filled the room.'},
+    {en:'inevitable',uk:'неминучий',ex:'Change is inevitable.'},
+    {en:'tenacious',uk:'наполегливий',ex:'She is a tenacious negotiator.'},
+    {en:'meticulous',uk:'педантичний / прискіпливий',ex:'He is meticulous about details.'},
+    {en:'ambiguous',uk:'неоднозначний',ex:'The instructions were ambiguous.'},
+  ],
+};
+
+const TARGETS = {zero:37,beginner:150,intermediate:300,advanced:500};
+
+// ════════════════════════════════
+//  STATE & PERSISTENCE
+// ════════════════════════════════
+const uid = new URLSearchParams(location.search).get('user_id')||'861217697';
+const USERS = {'861217697':{name:'Олексій',level:'zero'},'7537333010':{name:'Марія',level:'zero'},'5911786900':{name:'Іван',level:'zero'}};
+const user = USERS[uid]||{name:'Learner',level:'zero'};
+
+function ls(k){try{return JSON.parse(localStorage.getItem('zap_'+uid+'_'+k))}catch{return null}}
+function ss(k,v){try{localStorage.setItem('zap_'+uid+'_'+k,JSON.stringify(v))}catch{}}
+
+// SRS card structure: {en, uk, ex, level, interval, easeFactor, nextReview, repetitions}
+let srsCards = ls('srs') || [];
+let sessionCorrect = 0, sessionTotal = 0;
+const streak = ls('streak')||3;
+const streakHist = ls('streakHist')||[1,1,1,0,1,1,0];
+
+function getPool(level){ return POOL[level]||POOL.zero }
+function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+// ensure every pool word has a card
+function ensureCards(){
+  const allLevels = ['zero','beginner','intermediate','advanced'];
+  allLevels.forEach(lvl=>{
+    getPool(lvl).forEach(w=>{
+      if(!srsCards.find(c=>c.en===w.en)){
+        srsCards.push({...w,interval:1,easeFactor:2.5,nextReview:Date.now(),repetitions:0,learned:false});
+      }
+    });
+  });
+  ss('srs',srsCards);
+}
+ensureCards();
+
+function dueCards(){ return srsCards.filter(c=>c.learned && c.nextReview<=Date.now()) }
+function learnedCards(){ return srsCards.filter(c=>c.learned) }
+
+// SM-2 algorithm
+function rate(card, q){ // q: 0=again,1=hard,2=good,3=easy
+  const scores=[0,3,4,5];
+  const score=scores[q];
+  if(score<3){ card.repetitions=0; card.interval=1; }
+  else{
+    if(card.repetitions===0) card.interval=1;
+    else if(card.repetitions===1) card.interval=6;
+    else card.interval=Math.round(card.interval*card.easeFactor);
+    card.repetitions++;
+    card.easeFactor=Math.max(1.3,card.easeFactor+0.1-(5-score)*(0.08+(5-score)*0.02));
+  }
+  card.nextReview=Date.now()+card.interval*86400000;
+  card.learned=true;
+  ss('srs',srsCards);
+}
+
+function markLearned(en){
+  const c=srsCards.find(c=>c.en===en);
+  if(c&&!c.learned){c.learned=true;c.nextReview=Date.now()+86400000;ss('srs',srsCards);}
+  updateStats();renderWordTable();
+}
+
+// ════════════════════════════════
+//  INIT
+// ════════════════════════════════
+function init(){
+  ['gName','hName'].forEach(id=>document.getElementById(id).textContent=user.name);
+  document.getElementById('hLvl').textContent=user.level;
+  updateStats();
+  renderStreakBar();
+  loadVocab();
+  renderWordTable();
+}
+
+function updateStats(){
+  const learned=learnedCards();
+  const due=dueCards();
+  document.getElementById('sLearned').textContent=learned.length;
+  document.getElementById('sDue').textContent=due.length;
+  document.getElementById('sStreak').textContent=streak;
+  if(sessionTotal>0){
+    const pct=Math.round(sessionCorrect/sessionTotal*100);
+    document.getElementById('sAcc').textContent=pct+'%';
+    document.getElementById('sAccSub').textContent=sessionCorrect+'/'+sessionTotal;
+  }
+  // progress bars
+  const lvls=['zero','beginner','intermediate','advanced'];
+  const maps={zero:['pZ','cZ'],beginner:['pB','cB'],intermediate:['pI','cI'],advanced:['pA','cA']};
+  lvls.forEach(l=>{
+    const cnt=learnedCards().filter(c=>c.level===l).length;
+    const t=TARGETS[l];
+    const pct=Math.min(100,Math.round(cnt/t*100));
+    document.getElementById(maps[l][0]).style.width=pct+'%';
+    document.getElementById(maps[l][1]).textContent=cnt+'/'+t;
+  });
+}
+
+function recordAnswer(correct){
+  sessionTotal++;if(correct)sessionCorrect++;updateStats();
+}
+
+// ════════════════════════════════
+//  TABS
+// ════════════════════════════════
+const tabOrder=['vocab','anki','mcq','fill','dict','scramble','match','words'];
+const loaded={};
+function sw(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabOrder[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(!loaded[name]){
+    loaded[name]=true;
+    if(name==='anki')loadAnki();
+    if(name==='mcq')loadMCQ();
+    if(name==='fill')loadFill();
+    if(name==='dict')loadDict();
+    if(name==='scramble')loadScramble();
+    if(name==='match')loadMatch();
+  }
+}
+
+// ════════════════════════════════
+//  STREAK
+// ════════════════════════════════
+function renderStreakBar(){
+  const days=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+  document.getElementById('streakBar').innerHTML=
+    streakHist.map((h,i)=>`<div class="sd ${h?'hit':'miss'}" title="${days[i]}">${h?'⚡':''}</div>`).join('');
+}
+
+// ════════════════════════════════
+//  WORD TABLE
+// ════════════════════════════════
+function renderWordTable(){
+  const rows=learnedCards().slice().reverse();
+  const tb=document.getElementById('wTbody');
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:32px;font-size:12px">Ще немає слів</td></tr>';
+    return;
+  }
+  const now=Date.now();
+  tb.innerHTML=rows.map(w=>{
+    const diff=w.nextReview-now;
+    const dueStr=diff<=0?'<span class="due-badge due-now">зараз</span>'
+      :diff<86400000?`<span class="due-badge due-later">${Math.ceil(diff/3600000)}г</span>`
+      :`<span class="due-badge due-later">${Math.ceil(diff/86400000)}д</span>`;
+    return `<tr><td class="w-en">${w.en}</td><td class="w-uk">${w.uk}</td>
+      <td><span class="w-lvl">${w.level}</span></td><td>${dueStr}</td></tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════
+//  VOCAB (word of the day)
+// ════════════════════════════════
+function loadVocab(){
+  const w=rnd(getPool(user.level));
+  document.getElementById('vocabBody').innerHTML=`
+    <div class="voc-word">${w.en}</div>
+    <div class="voc-trans">${w.uk}</div>
+    <div class="voc-ex">"${w.ex}"</div>
+    <div class="ar">
+      <button class="btn-ghost" onclick="speakWord('${w.en.replace(/'/g,"\\'")}')">🔊 Вимова</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="loadVocab()">Наступне →</button>
+        <button class="btn-next" onclick="markLearned('${w.en.replace(/'/g,"\\'")}');loadVocab()">✅ Знаю</button>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════
+//  ANKI (spaced repetition)
+// ════════════════════════════════
+let ankiCard=null;
+function loadAnki(){
+  const due=dueCards();
+  const el=document.getElementById('ankiBody');
+  if(!due.length){
+    const total=learnedCards().length;
+    const next=srsCards.filter(c=>c.learned&&c.nextReview>Date.now()).sort((a,b)=>a.nextReview-b.nextReview)[0];
+    const nextIn=next?Math.ceil((next.nextReview-Date.now())/3600000):null;
+    el.innerHTML=`
+      <div style="text-align:center;padding:24px">
+        <div style="font-size:40px;margin-bottom:12px">🎉</div>
+        <div style="font-size:18px;font-weight:800;color:var(--mint);margin-bottom:8px">Молодець! Всі картки повторено.</div>
+        <div style="font-size:13px;color:var(--muted)">${total>0?`${total} слів вивчено.${nextIn?` Наступне повторення через ${nextIn}г.`:''}`:
+        'Спочатку вивчи кілька слів у вправах!'}</div>
+        ${total>0?`<button class="btn-next" style="margin:20px auto 0;display:block" onclick="forceAnki()">🎲 Повторити випадкове</button>`:''}
+      </div>`;
+    return;
+  }
+  ankiCard=rnd(due);
+  el.innerHTML=`
+    <div class="anki-due">
+      <span class="due-badge due-now">🔴 ${due.length} потребують повторення</span>
+    </div>
+    <div class="anki-card">
+      <div class="anki-inner" onclick="revealAnki()">
+        <div class="anki-word">${ankiCard.en}</div>
+        <div class="anki-hint">👆 натисни щоб відкрити</div>
+        <div class="anki-back" id="ankiBack">
+          <div class="anki-uk">${ankiCard.uk}</div>
+          <div class="anki-ex">"${ankiCard.ex}"</div>
+          <div class="anki-rate">
+            <button class="btn-rate rate-again" onclick="rateAnki(0)">😰 Знову</button>
+            <button class="btn-rate rate-hard"  onclick="rateAnki(1)">😤 Важко</button>
+            <button class="btn-rate rate-good"  onclick="rateAnki(2)">😊 Добре</button>
+            <button class="btn-rate rate-easy"  onclick="rateAnki(3)">⚡ Легко</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function forceAnki(){
+  const l=learnedCards();
+  if(!l.length)return;
+  ankiCard=rnd(l);
+  document.getElementById('ankiBody').innerHTML=`
+    <div class="anki-card">
+      <div class="anki-inner" onclick="revealAnki()">
+        <div class="anki-word">${ankiCard.en}</div>
+        <div class="anki-hint">👆 натисни щоб відкрити</div>
+        <div class="anki-back" id="ankiBack">
+          <div class="anki-uk">${ankiCard.uk}</div>
+          <div class="anki-ex">"${ankiCard.ex}"</div>
+          <div class="anki-rate">
+            <button class="btn-rate rate-again" onclick="rateAnki(0)">😰 Знову</button>
+            <button class="btn-rate rate-hard"  onclick="rateAnki(1)">😤 Важко</button>
+            <button class="btn-rate rate-good"  onclick="rateAnki(2)">😊 Добре</button>
+            <button class="btn-rate rate-easy"  onclick="rateAnki(3)">⚡ Легко</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function revealAnki(){
+  const b=document.getElementById('ankiBack');
+  if(b)b.classList.add('show');
+}
+function rateAnki(q){
+  if(!ankiCard)return;
+  rate(ankiCard,q);
+  recordAnswer(q>=2);
+  loadAnki();
+}
+
+// ════════════════════════════════
+//  MCQ
+// ════════════════════════════════
+let mcqW=null;
+function loadMCQ(){
+  const pool=getPool(user.level);
+  if(pool.length<4){document.getElementById('mcqBody').innerHTML='<p style="color:var(--muted);padding:24px">Недостатньо слів.</p>';return;}
+  mcqW=rnd(pool);
+  const others=pool.filter(w=>w.en!==mcqW.en).sort(()=>Math.random()-.5).slice(0,3);
+  const opts=[...others,mcqW].sort(()=>Math.random()-.5);
+  const asEU=Math.random()>.4;
+  const q=asEU?mcqW.en:mcqW.uk;
+  const label=w=>asEU?w.uk:w.en;
+  const keys=['A','B','C','D'];
+  const ci=opts.indexOf(mcqW);
+  document.getElementById('mcqBody').innerHTML=`
+    <div class="ex-q">${asEU?'🇬🇧 Що означає:':'🇺🇦 Яке слово?'} <span class="hl-sky">${q}</span></div>
+    <div class="opts">${opts.map((o,i)=>`
+      <button class="opt" id="o${i}" onclick="checkMCQ(${i},${ci})">
+        <span class="opt-k">${keys[i]}</span>${label(o)}
+      </button>`).join('')}</div>
+    <div class="fb" id="mcqFb"></div>
+    <div class="ar">
+      <div class="score-txt">✓ <strong>${sessionCorrect}</strong>/${sessionTotal}</div>
+      <button class="btn-next" id="mcqNxt" onclick="loadMCQ()" disabled>Далі →</button>
+    </div>`;
+}
+function checkMCQ(chosen,ci){
+  const ok=chosen===ci;
+  recordAnswer(ok);
+  document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===ci)b.classList.add('correct');else if(i===chosen&&!ok)b.classList.add('wrong');});
+  const fb=document.getElementById('mcqFb');
+  fb.className='fb '+(ok?'ok':'bad');
+  fb.innerHTML=ok?`✅ Правильно! <strong>${mcqW.en}</strong> = ${mcqW.uk}<br><span style="font-size:12px;font-family:var(--mono);opacity:.8">${mcqW.ex}</span>`
+    :`❌ Відповідь: <strong>${mcqW.en}</strong> = ${mcqW.uk}`;
+  document.getElementById('mcqNxt').disabled=false;
+  if(ok)markLearned(mcqW.en);
+}
+
+// ════════════════════════════════
+//  FILL
+// ════════════════════════════════
+let fillW=null;
+function loadFill(){
+  const pool=getPool(user.level);
+  fillW=rnd(pool);
+  const masked=fillW.ex.replace(new RegExp(fillW.en,'gi'),'___');
+  document.getElementById('fillBody').innerHTML=`
+    <div class="ex-q">🇺🇦 Напиши по-англійськи: <span class="hl-mint">${fillW.uk}</span></div>
+    <div style="font-size:12px;color:var(--muted2);font-family:var(--mono);font-style:italic;margin-bottom:16px">"${masked}"</div>
+    <input class="tx-inp" id="fillInp" type="text" placeholder="Введи слово…" autocomplete="off" autocapitalize="off" onkeydown="if(event.key==='Enter')checkFill()">
+    <button class="btn-check" onclick="checkFill()">Перевірити ✓</button>
+    <div class="fb" id="fillFb"></div>
+    <div class="ar">
+      <div class="score-txt">✓ <strong>${sessionCorrect}</strong>/${sessionTotal}</div>
+      <button class="btn-next" id="fillNxt" onclick="loadFill()" disabled>Далі →</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('fillInp')?.focus(),50);
+}
+function checkFill(){
+  const inp=document.getElementById('fillInp');
+  if(!inp||inp.disabled)return;
+  const ok=inp.value.trim().toLowerCase()===fillW.en.toLowerCase();
+  recordAnswer(ok);
+  inp.disabled=true;inp.classList.add(ok?'ok':'bad');
+  const fb=document.getElementById('fillFb');
+  fb.className='fb '+(ok?'ok':'bad');
+  fb.innerHTML=ok?`✅ Чудово!`:`❌ Правильно: <strong>${fillW.en}</strong>`;
+  document.getElementById('fillNxt').disabled=false;
+  if(ok)markLearned(fillW.en);
+}
+
+// ════════════════════════════════
+//  DICTATION (Web Speech TTS)
+// ════════════════════════════════
+let dictW=null;
+function speakWord(word,rate=0.85){
+  if(!window.speechSynthesis)return;
+  const u=new SpeechSynthesisUtterance(word);
+  u.lang='en-GB';u.rate=rate;
+  speechSynthesis.cancel();
+  setTimeout(()=>speechSynthesis.speak(u),50);
+}
+function loadDict(){
+  const pool=getPool(user.level);
+  dictW=rnd(pool);
+  document.getElementById('dictBody').innerHTML=`
+    <div class="ex-q" style="font-size:18px">Послухай і напиши слово по-англійськи</div>
+    <div class="dict-orb">
+      <div class="orb" id="dictOrb" onclick="playDict()">🔊</div>
+    </div>
+    <div class="dict-hint">Натисни на кнопку щоб почути слово</div>
+    <input class="tx-inp" id="dictInp" type="text" placeholder="Напиши що почув…" autocomplete="off" autocapitalize="off" onkeydown="if(event.key==='Enter')checkDict()">
+    <button class="btn-check" onclick="checkDict()">Перевірити ✓</button>
+    <div class="fb" id="dictFb"></div>
+    <div class="ar">
+      <div class="score-txt">✓ <strong>${sessionCorrect}</strong>/${sessionTotal}</div>
+      <button class="btn-next" id="dictNxt" onclick="loadDict()" disabled>Далі →</button>
+    </div>`;
+  setTimeout(()=>playDict(),400);
+}
+function playDict(){
+  const orb=document.getElementById('dictOrb');
+  if(orb){orb.classList.add('playing');setTimeout(()=>orb.classList.remove('playing'),1200);}
+  speakWord(dictW.en,0.78);
+}
+function checkDict(){
+  const inp=document.getElementById('dictInp');
+  if(!inp||inp.disabled)return;
+  const ans=inp.value.trim().toLowerCase();
+  const ok=ans===dictW.en.toLowerCase()||ans===dictW.en.toLowerCase().replace(/[^a-z]/g,'');
+  recordAnswer(ok);
+  inp.disabled=true;inp.classList.add(ok?'ok':'bad');
+  const fb=document.getElementById('dictFb');
+  fb.className='fb '+(ok?'ok':'bad');
+  fb.innerHTML=ok?`✅ Ти почув правильно! <strong>${dictW.en}</strong> = ${dictW.uk}`
+    :`❌ Це було: <strong>${dictW.en}</strong> = ${dictW.uk}`;
+  speakWord(dictW.en);
+  document.getElementById('dictNxt').disabled=false;
+  if(ok)markLearned(dictW.en);
+}
+
+// ════════════════════════════════
+//  SCRAMBLE
+// ════════════════════════════════
+let scrW=null,scrSel=[];
+function loadScramble(){
+  const pool=getPool(user.level);
+  scrW=rnd(pool);scrSel=[];
+  const letters=scrW.en.split('').sort(()=>Math.random()-.5);
+  document.getElementById('scrambleBody').innerHTML=`
+    <div class="ex-q" style="font-size:18px">🇺🇦 Склади слово: <span class="hl" style="color:var(--orange)">${scrW.uk}</span></div>
+    <div class="scr-answer" id="scrAns">_ _ _ _ _</div>
+    <div class="tile-bank" id="scrBank">
+      ${letters.map((l,i)=>`<div class="tile" id="tl${i}" onclick="pickTile(${i},'${l}')">${l.toUpperCase()}</div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-ghost" onclick="clearScr()">↩ Скинути</button>
+      <button class="btn-ghost" onclick="speakWord('${scrW.en.replace(/'/g,"\\'")}')">🔊 Прослухати</button>
+    </div>
+    <div class="fb" id="scrFb"></div>
+    <div class="ar">
+      <div class="score-txt">✓ <strong>${sessionCorrect}</strong>/${sessionTotal}</div>
+      <button class="btn-next" id="scrNxt" onclick="loadScramble()" disabled>Далі →</button>
+    </div>`;
+}
+function pickTile(idx,letter){
+  const t=document.getElementById('tl'+idx);
+  if(t.classList.contains('used'))return;
+  t.classList.add('used');
+  scrSel.push({idx,letter});
+  const built=scrSel.map(s=>s.letter).join('');
+  document.getElementById('scrAns').textContent=built.toUpperCase()||'_ '.repeat(scrW.en.length).trim();
+  if(built.length===scrW.en.length)checkScramble(built);
+}
+function clearScr(){
+  scrSel=[];
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('used'));
+  document.getElementById('scrAns').textContent='_ _ _ _ _';
+}
+function checkScramble(built){
+  const ok=built.toLowerCase()===scrW.en.toLowerCase();
+  recordAnswer(ok);
+  document.querySelectorAll('.tile').forEach(t=>t.style.pointerEvents='none');
+  const fb=document.getElementById('scrFb');
+  fb.className='fb '+(ok?'ok':'bad');
+  if(ok){
+    fb.innerHTML=`✅ Правильно! <strong>${scrW.en}</strong> = ${scrW.uk}`;
+    document.getElementById('scrAns').style.color='var(--mint)';
+    markLearned(scrW.en);
+  }else{
+    fb.innerHTML=`❌ Правильно: <strong>${scrW.en}</strong>`;
+    document.getElementById('scrAns').style.color='var(--coral)';
+    document.getElementById('scrAns').textContent=scrW.en.toUpperCase();
+  }
+  document.getElementById('scrNxt').disabled=false;
+  speakWord(scrW.en);
+}
+
+// ════════════════════════════════
+//  MATCHING
+// ════════════════════════════════
+let matchSel=null,matchPairs=[],matchDone=0;
+function loadMatch(){
+  const pool=getPool(user.level);
+  const words=pool.sort(()=>Math.random()-.5).slice(0,5);
+  matchPairs=words;matchSel=null;matchDone=0;
+  const ukShuffled=[...words].sort(()=>Math.random()-.5);
+  document.getElementById('matchBody').innerHTML=`
+    <div class="ex-q" style="font-size:16px;margin-bottom:16px">З'єднай англійське слово з перекладом</div>
+    <div class="match-grid">
+      <div class="match-col" id="mcLeft">
+        ${words.map((w,i)=>`<div class="match-item" id="ml${i}" data-en="${w.en}" onclick="pickMatch('en','${w.en}',this)">${w.en}</div>`).join('')}
+      </div>
+      <div class="match-col" id="mcRight">
+        ${ukShuffled.map((w,i)=>`<div class="match-item" id="mr${i}" data-en="${w.en}" onclick="pickMatch('uk','${w.en}',this)">${w.uk}</div>`).join('')}
+      </div>
+    </div>
+    <div class="fb" id="matchFb"></div>
+    <div class="ar" style="margin-top:8px">
+      <div class="score-txt">✓ <strong>${sessionCorrect}</strong>/${sessionTotal}</div>
+      <button class="btn-next" id="matchNxt" onclick="loadMatch()" disabled>Нова гра →</button>
+    </div>`;
+}
+function pickMatch(side,en,el){
+  if(el.classList.contains('matched')||el.classList.contains('locked'))return;
+  if(!matchSel){
+    document.querySelectorAll('.match-item').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSel={side,en,el};
+  }else{
+    if(matchSel.side===side){el.classList.add('selected');matchSel={side,en,el};return;}
+    const ok=matchSel.en===en;
+    if(ok){
+      [el,matchSel.el].forEach(x=>{x.classList.remove('selected');x.classList.add('matched','locked');});
+      matchDone++;recordAnswer(true);markLearned(en);
+      if(matchDone===matchPairs.length){
+        const fb=document.getElementById('matchFb');
+        fb.className='fb ok';fb.innerHTML='🎉 Всі пари знайдено!';
+        document.getElementById('matchNxt').disabled=false;
+      }
+    }else{
+      [el,matchSel.el].forEach(x=>{x.classList.add('wrong-flash');setTimeout(()=>x.classList.remove('wrong-flash'),400);});
+      recordAnswer(false);
+    }
+    matchSel=null;
+    document.querySelectorAll('.match-item').forEach(x=>x.classList.remove('selected'));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

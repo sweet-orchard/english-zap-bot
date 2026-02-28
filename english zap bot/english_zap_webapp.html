@@ -1,0 +1,4959 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>⚡ English Zap</title>
+  <!-- Telegram Mini App SDK — required for WebApp integration -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --bg: #FEFBF3;
+      --bg-card: #FFFDF7;
+      --bg-soft: #FDF6E3;
+      --orange: #E8622A;
+      --orange-lt: #F4844E;
+      --orange-xs: #FDE8DB;
+      --brown: #5C3D2E;
+      --text: #2C1810;
+      --text-2: #6B4F3A;
+      --text-3: #9A7A65;
+      --border: #EDE0CB;
+      --border-dk: #D4C4A8;
+      --shadow: 0 2px 12px rgba(92, 61, 46, .10);
+      --shadow-lg: 0 8px 32px rgba(92, 61, 46, .14);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: 220ms cubic-bezier(.4, 0, .2, 1);
+      /* Safe area for notched phones */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4A96A' fill-opacity='0.04'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E");
+      /* Telegram color theme integration */
+      background-color: var(--bg);
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────────────────── */
+    .app {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px 16px calc(80px + var(--safe-bottom));
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 20px;
+      border-bottom: 1.5px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--brown);
+    }
+
+    .logo-zap {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(232, 98, 42, .35);
+      overflow: hidden;
+      /* Ensures the image respects border-radius */
+    }
+
+    .logo-zap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo span {
+      color: var(--orange);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--orange-xs);
+      border: 1.5px solid rgba(232, 98, 42, .2);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    /* ─── SYNC STATUS BAR ────────────────────────────────────── */
+    .sync-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .sync-bar.connected {
+      border-color: rgba(92, 184, 92, .4);
+      background: #f0fff4;
+    }
+
+    .sync-bar.error {
+      border-color: rgba(220, 53, 69, .3);
+      background: #fff5f5;
+    }
+
+    .sync-user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sync-user-name {
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .sync-user-sub {
+      font-size: .74rem;
+      color: var(--text-3);
+    }
+
+    .sync-status {
+      font-size: .78rem;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ccc;
+      flex-shrink: 0;
+    }
+
+    .dot.ok {
+      background: #5cb85c;
+    }
+
+    .dot.err {
+      background: #dc3545;
+    }
+
+    .dot.pulse {
+      animation: pulse 1.5s infinite;
+      background: var(--orange);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .btn-sync-manual {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-sync-manual:hover {
+      background: var(--orange-lt);
+    }
+
+    .btn-sync-manual:disabled {
+      opacity: .6;
+      cursor: default;
+    }
+
+    /* Manual user ID input (shown only if not in Telegram) */
+    .user-id-row {
+      display: none;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .user-id-row.visible {
+      display: flex;
+    }
+
+    .user-id-input {
+      flex: 1;
+      min-width: 140px;
+      padding: 9px 14px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      color: var(--text-2);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .user-id-input:focus {
+      border-color: var(--orange);
+    }
+
+    .btn-connect {
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-connect:hover {
+      background: var(--orange-lt);
+      transform: translateY(-1px);
+    }
+
+    /* ─── TABS ───────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-soft);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 9px 4px;
+      border: none;
+      background: transparent;
+      border-radius: 11px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-3);
+      transition: all var(--transition);
+    }
+
+    .tab.active {
+      background: var(--bg-card);
+      color: var(--orange);
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text-2);
+    }
+
+    /* ─── SECTION ────────────────────────────────────────────── */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeIn .22s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* ─── LEVEL SELECTOR ─────────────────────────────────────── */
+    .level-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .lvl-btn {
+      padding: 7px 14px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 20px;
+      background: var(--bg-card);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all var(--transition);
+    }
+
+    .lvl-btn.active,
+    .lvl-btn:hover {
+      border-color: var(--orange);
+      background: var(--orange-xs);
+      color: var(--orange);
+    }
+
+    /* ─── WORD CARD ──────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 24px 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--orange-lt));
+    }
+
+    .card-emoji {
+      font-size: 2.2rem;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .word-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .word-main {
+      font-family: var(--font-serif);
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .word-transcribe {
+      font-family: var(--font-mono);
+      font-size: .88rem;
+      color: var(--text-3);
+      background: var(--bg-soft);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .word-pron-ua {
+      font-size: .82rem;
+      color: var(--text-3);
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .pill {
+      font-size: .74rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .pill-level {
+      background: var(--orange-xs);
+      color: var(--orange);
+    }
+
+    .section-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 4px;
+    }
+
+    .definition {
+      font-size: .93rem;
+      color: var(--text-2);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .translation {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      color: var(--brown);
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      background: var(--bg-soft);
+      border-left: 3px solid var(--orange);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .example-en {
+      font-size: .9rem;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 4px;
+      font-style: italic;
+    }
+
+    .example-ua {
+      font-size: .82rem;
+      color: var(--text-3);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    /* audio player */
+    .audio-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .audio-title {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin: 2px 0 8px;
+    }
+
+    .audio-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border-dk);
+      background: var(--bg-card);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+
+    .audio-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    .audio-btn.playing {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    .audio-btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .audio-wave {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .audio-btn.playing .audio-wave {
+      display: flex;
+    }
+
+    .audio-btn.playing .play-icon {
+      display: none;
+    }
+
+    .audio-wave span {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--orange);
+      animation: wave .7s ease-in-out infinite;
+    }
+
+    .audio-wave span:nth-child(1) {
+      height: 5px;
+      animation-delay: 0s
+    }
+
+    .audio-wave span:nth-child(2) {
+      height: 11px;
+      animation-delay: .1s
+    }
+
+    .audio-wave span:nth-child(3) {
+      height: 7px;
+      animation-delay: .2s
+    }
+
+    .audio-wave span:nth-child(4) {
+      height: 13px;
+      animation-delay: .05s
+    }
+
+    .audio-wave span:nth-child(5) {
+      height: 5px;
+      animation-delay: .15s
+    }
+
+    @keyframes wave {
+
+      0%,
+      100% {
+        transform: scaleY(1)
+      }
+
+      50% {
+        transform: scaleY(.4)
+      }
+    }
+
+    /* card actions */
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: .88rem;
+      font-weight: 600;
+      transition: all var(--transition);
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: var(--orange-lt);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 16px rgba(232, 98, 42, .35);
+    }
+
+    .btn-primary:disabled {
+      opacity: .6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-2);
+      border: 1.5px solid var(--border-dk);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    /* loading */
+    .loading-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-3);
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--border-dk);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 14px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ─── ANKI SECTION ───────────────────────────────────────── */
+    .anki-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .anki-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .anki-bar {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--orange), var(--orange-lt));
+      transition: width .5s ease;
+    }
+
+    .anki-count {
+      font-size: .78rem;
+      color: var(--text-3);
+      white-space: nowrap;
+    }
+
+
+    /* ─── ANKI CARD — PREMIUM REDESIGN ──────────────────────────── */
+    .anki-session-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .anki-streak-chip {
+      background: #FFF7ED;
+      border: 1.5px solid #FED7AA;
+      color: #C2410C;
+      font-size: .76rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .anki-remaining-chip {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      color: var(--text-3);
+      font-size: .76rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* 3D scene */
+    .anki-scene {
+      perspective: 1200px;
+      margin-bottom: 14px;
+    }
+
+    .anki-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .anki-card * {
+      min-width: 0;
+    }
+
+    /* Level-coloured top bar */
+    .anki-card-header {
+      width: 100%;
+      padding: 14px 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+    }
+
+    .anki-level-badge {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+
+    .anki-letter-btn {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .anki-srs-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .anki-srs-badge.srs-new {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .anki-srs-badge.srs-review {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .anki-srs-badge.srs-mastered {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .anki-card-body {
+      flex: 1;
+      width: 100%;
+      padding: 24px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .anki-front-word {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .anki-front-transcribe {
+      font-family: var(--font-mono);
+      font-size: .88rem;
+      color: var(--text-3);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .anki-hint {
+      font-size: .76rem;
+      color: var(--text-3);
+      margin-top: 12px;
+    }
+
+    .anki-back {
+      display: none;
+      width: 100%;
+    }
+
+    .anki-card.revealed .anki-back {
+      display: block;
+    }
+
+    .anki-card.revealed .anki-hint {
+      display: none;
+    }
+
+    .anki-back-translation {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .anki-back-example {
+      font-size: .86rem;
+      color: var(--text-2);
+      font-style: italic;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    /* ── Rating buttons ── */
+    .anki-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .anki-btn {
+      flex: 1 1 120px;
+      padding: 13px 8px 10px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      transition: all .2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .anki-btn-label {
+      font-size: .82rem;
+    }
+
+    .anki-btn-interval {
+      font-size: .68rem;
+      opacity: .75;
+      font-weight: 500;
+    }
+
+    .anki-btn-key {
+      font-size: .6rem;
+      opacity: .55;
+      font-weight: 400;
+      margin-top: 2px;
+      font-family: var(--font-mono);
+    }
+
+    .anki-btn-again {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .anki-btn-again:hover {
+      background: #FECACA;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, .15);
+    }
+
+    .anki-btn-hard {
+      background: #EDE9FE;
+      color: #6D28D9;
+    }
+
+    .anki-btn-hard:hover {
+      background: #DDD6FE;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(109, 40, 217, .15);
+    }
+
+    .anki-btn-good {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .anki-btn-good:hover {
+      background: #A7F3D0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, .15);
+    }
+
+    .anki-btn-easy {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .anki-btn-easy:hover {
+      background: #FDE68A;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(217, 119, 6, .15);
+    }
+
+    /* ── Skip / Hint row ── */
+    .anki-action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      justify-content: flex-end;
+    }
+
+    .anki-action-btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-2);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .anki-action-btn:hover {
+      background: #F3F4F6;
+      border-color: var(--text-3);
+      color: var(--text);
+    }
+
+    /* ── Multiple Choice ── */
+    .anki-mc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .anki-mc-option {
+      padding: 12px 10px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 12px;
+      background: var(--bg-card);
+      color: var(--text-2);
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+
+    .anki-mc-option:hover:not(.mc-locked) {
+      background: #F3F4F6;
+      border-color: var(--text-3);
+      color: var(--text);
+    }
+
+    .anki-mc-option.mc-correct {
+      background: #D1FAE5;
+      border-color: #6EE7B7;
+      color: #065F46;
+    }
+
+    .anki-mc-option.mc-wrong {
+      background: #FEE2E2;
+      border-color: #FCA5A5;
+      color: #991B1B;
+    }
+
+    /* ── Spelling feedback ── */
+    .anki-spelling-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .anki-spell-letter {
+      width: 32px;
+      height: 38px;
+      border: 2px solid var(--border-dk);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--bg-card);
+      transition: all .2s;
+    }
+
+    .anki-spell-letter.correct {
+      background: #D1FAE5;
+      border-color: #6EE7B7;
+      color: #065F46;
+    }
+
+    .anki-spell-letter.wrong {
+      background: #FEE2E2;
+      border-color: #FCA5A5;
+      color: #991B1B;
+    }
+
+    .anki-spell-letter.neutral {
+      background: #F3F4F6;
+      border-color: var(--border-dk);
+      color: var(--text-3);
+    }
+
+    /* ── Fill the blank ── */
+    .anki-blank-sentence {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text-2);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .anki-blank {
+      display: inline-block;
+      min-width: 80px;
+      border-bottom: 2px solid var(--orange);
+      color: var(--orange);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      padding: 0 4px;
+    }
+
+    /* ── Toolbar, Select, Mini ── */
+    .anki-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-3);
+    }
+
+    .anki-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .anki-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .anki-select {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 8px;
+      background: var(--bg-card);
+      font-family: var(--font-sans);
+      font-size: .82rem;
+      color: var(--text-2);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .anki-mini {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-dk);
+      background: var(--bg-card);
+      color: var(--text-2);
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .anki-mini.on {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    .anki-audio-wrap {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .anki-audio-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .anki-audio-input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      font-family: var(--font-mono);
+      outline: none;
+    }
+
+    .anki-audio-fb {
+      margin-top: 8px;
+      font-size: .82rem;
+      color: var(--text-2);
+      min-height: 20px;
+    }
+
+
+
+    /* ─── VOCAB / HISTORY ────────────────────────────────────── */
+    .vocab-toolbar {
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #FFFEFC 0%, #FFF7EC 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vocab-filters-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .vocab-filters-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .vocab-filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .vocab-filter-btn.active[data-vfil="all"] {
+      background: var(--text-2);
+      color: #fff;
+      border-color: var(--text-2);
+      box-shadow: 0 4px 12px rgba(107, 79, 58, 0.25);
+    }
+
+    .vocab-filter-btn.active[data-vfil="new"] {
+      background: #3B82F6;
+      /* blue-500 */
+      color: #fff;
+      border-color: #2563EB;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .vocab-filter-btn.active[data-vfil="review"] {
+      background: #22C55E;
+      /* green-500 */
+      color: #fff;
+      border-color: #16A34A;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .vocab-filter-btn.active[data-vfil="difficult"] {
+      background: #7C3AED;
+      /* violet-500 */
+      color: #fff;
+      border-color: #6D28D9;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .vocab-filter-btn.active[data-vfil="mastered"] {
+      background: #F59E0B;
+      /* amber-500 */
+      color: #fff;
+      border-color: #D97706;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .vocab-toolbar-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .vocab-add-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 8px 10px;
+      font-size: .78rem;
+      border-radius: 10px;
+    }
+
+    .vocab-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border: 1.5px solid #E8D6C8;
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .vocab-search-icon {
+      font-size: 1.9rem;
+      color: var(--text-3);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+
+    .vocab-sort-select {
+      min-width: 142px;
+      max-width: 176px;
+      padding: 7px 28px 7px 10px;
+      border: 1.5px solid #E8D6C8;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, #FFFDF9 0%, #FFF8EE 100%);
+      font-family: var(--font-sans);
+      font-size: .73rem;
+      font-weight: 700;
+      color: var(--text-2);
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(30, 16, 10, .06);
+    }
+
+    .vocab-sort-select:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(246, 162, 92, .18);
+    }
+
+    .custom-add {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .custom-add-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .custom-add-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    .custom-add-input {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: .82rem;
+      outline: none;
+    }
+
+    .custom-add-input:focus {
+      border-color: var(--orange);
+    }
+
+    .custom-add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    .custom-add-note {
+      font-size: .72rem;
+      color: var(--text-3);
+    }
+
+    .custom-word-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1250;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .custom-word-modal.show {
+      display: flex;
+    }
+
+    .custom-word-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(30, 20, 16, 0.46);
+      backdrop-filter: blur(2px);
+    }
+
+    .custom-word-dialog {
+      position: relative;
+      width: min(760px, 100%);
+      max-height: 88vh;
+      overflow: auto;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 14px;
+    }
+
+    .custom-word-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .custom-word-title {
+      font-size: .9rem;
+      color: var(--text-2);
+      font-weight: 700;
+    }
+
+    .custom-word-close {
+      border: 1.5px solid var(--border-dk);
+      background: var(--bg-card);
+      color: var(--text-2);
+      border-radius: 9px;
+      padding: 7px 11px;
+      font-size: .8rem;
+      cursor: pointer;
+    }
+
+    .custom-word-close:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 7px 2px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: .84rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-3);
+    }
+
+    .vocab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vocab-item {
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(255, 185, 122, 0.14), transparent 48%),
+        var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .vocab-item:hover {
+      border-color: var(--orange);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    .vocab-item-mastered {
+      background:
+        radial-gradient(130% 140% at 0% 0%, rgba(250, 204, 21, 0.22), transparent 52%),
+        linear-gradient(180deg, #FFFCF1 0%, #FFF8DE 100%);
+      border-color: #F5B301;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.22);
+    }
+
+    .vocab-item-mastered .vocab-word {
+      color: #7A4A00;
+    }
+
+    .vocab-item-mastered .vocab-trans {
+      color: #975A16;
+    }
+
+    .vocab-item-mastered .vocab-next {
+      color: #8A4B05;
+    }
+
+    .vocab-left {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .vocab-top {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .vocab-word {
+      font-family: var(--font-serif);
+      font-size: 1.03rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .01em;
+      line-height: 1.15;
+    }
+
+    .vocab-trans {
+      font-size: .76rem;
+      color: var(--text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vocab-status-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      font-size: .67rem;
+    }
+
+    .vocab-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.65);
+    }
+
+    .vocab-dot-new {
+      background: #0EA5E9;
+    }
+
+    .vocab-dot-due {
+      background: #DC2626;
+    }
+
+    .vocab-dot-soon {
+      background: #D97706;
+    }
+
+    .vocab-dot-later {
+      background: #7C3AED;
+    }
+
+    .vocab-dot-difficult {
+      background: #7C3AED;
+    }
+
+    .vocab-dot-easy {
+      background: #16A34A;
+    }
+
+    .vocab-dot-mastered {
+      background: #EAB308;
+    }
+
+    .vocab-next {
+      color: var(--text-2);
+      font-weight: 600;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .vocab-reps {
+      color: var(--text-3);
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1px 6px;
+      background: #fff;
+    }
+
+    .vocab-track {
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .vocab-fill {
+      height: 100%;
+      width: 0;
+      background: #38BDF8;
+      border-radius: 4px;
+      transition: width .4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .vocab-fill-new {
+      background: #38BDF8;
+    }
+
+    .vocab-fill-again {
+      background: #F87171;
+    }
+
+    .vocab-fill-difficult {
+      background: #7C3AED;
+    }
+
+    .vocab-fill-easy {
+      background: #34D399;
+    }
+
+    .vocab-fill-mastered {
+      background: #EAB308;
+      box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+    }
+
+
+    .vocab-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      align-self: start;
+      width: 92px;
+      justify-content: flex-end;
+    }
+
+    .vocab-sched {
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      border-radius: 9px;
+      padding: 3px 6px;
+      border: 1px solid transparent;
+      width: 64px;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .vocab-sched-new {
+      background: #E0F2FE;
+      color: #0369A1;
+      border-color: #BAE6FD;
+    }
+
+    .vocab-sched-due {
+      background: #FEE2E2;
+      color: #B91C1C;
+      border-color: #FECACA;
+    }
+
+    .vocab-sched-soon {
+      background: #FEF3C7;
+      color: #B45309;
+      border-color: #FDE68A;
+    }
+
+    .vocab-sched-later {
+      background: #EDE9FE;
+      color: #6D28D9;
+      border-color: #DDD6FE;
+    }
+
+    .vocab-sched-difficult {
+      background: #EDE9FE;
+      color: #6D28D9;
+      border-color: #DDD6FE;
+    }
+
+    .vocab-sched-easy {
+      background: #DCFCE7;
+      color: #166534;
+      border-color: #86EFAC;
+    }
+
+    .vocab-sched-mastered {
+      background: #FEF3C7;
+      color: #92400E;
+      border-color: #FCD34D;
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25) inset;
+    }
+
+    .word-status-editor {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-soft);
+    }
+
+    .word-status-title {
+      font-size: .78rem;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .word-status-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .word-status-btn {
+      border: 1.5px solid var(--border-dk);
+      border-radius: 9px;
+      padding: 8px 6px;
+      background: #fff;
+      color: var(--text-2);
+      font-size: .74rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .word-status-btn:hover {
+      border-color: var(--orange);
+    }
+
+    .word-status-btn.active {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 2px rgba(246, 162, 92, 0.2);
+    }
+
+    .word-status-current {
+      font-size: .72rem;
+      color: var(--text-2);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .vocab-del {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 7px;
+      background: var(--bg-card);
+      color: #DC2626;
+      cursor: pointer;
+      font-size: .82rem;
+      line-height: 1;
+      transition: all var(--transition);
+    }
+
+    .vocab-del:hover {
+      border-color: #DC2626;
+      background: #FEE2E2;
+    }
+
+    .vocab-source {
+      font-size: .68rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .vocab-source-tg {
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    .vocab-source-web {
+      background: var(--orange-xs);
+      color: var(--orange);
+    }
+
+    .srs-badge {
+      font-size: .64rem;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+    }
+
+    .word-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .word-modal.show {
+      display: flex;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    .word-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(30, 20, 16, 0.56);
+      backdrop-filter: blur(2px);
+    }
+
+    .word-modal-dialog {
+      position: relative;
+      width: min(680px, 100%);
+      max-height: 88vh;
+      overflow: auto;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 14px;
+    }
+
+    .word-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .word-modal-title {
+      font-size: .84rem;
+      color: var(--text-3);
+      font-weight: 600;
+    }
+
+    .word-modal-close {
+      border: 1.5px solid var(--border-dk);
+      background: var(--bg-card);
+      color: var(--text-2);
+      border-radius: 9px;
+      padding: 7px 11px;
+      font-size: .8rem;
+      cursor: pointer;
+    }
+
+    .word-modal-close:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-xs);
+    }
+
+    /* ─── STATS SECTION ──────────────────────────────────────── */
+    .stats-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stats-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-summary {
+      padding: 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(232, 98, 42, 0.15);
+      box-shadow: 0 10px 30px rgba(92, 61, 46, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-summary::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(232, 98, 42, 0.1), transparent 70%);
+      pointer-events: none;
+    }
+
+    .stats-summary-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 12px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .stats-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8rem;
+      width: 100%;
+    }
+
+    .stats-total-num {
+      font-family: var(--font-serif);
+      font-size: 2.8rem;
+      line-height: 1;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .stats-total-label {
+      font-size: .82rem;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    .stats-due-chip {
+      background: #F3F4F6;
+      color: var(--text-3);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 16px;
+      text-align: center;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stats-due-chip.has-due {
+      background: #FFF7ED;
+      color: #EA580C;
+      border-color: rgba(234, 88, 12, 0.25);
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.1);
+    }
+
+    .stats-due-num {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stats-due-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* New Level Progress Section */
+    .level-progress-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .level-goal-item {
+      margin-bottom: 12px;
+    }
+
+    .level-goal-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .level-goal-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: .74rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .level-goal-name {
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+
+    .level-goal-count {
+      color: var(--text-3);
+    }
+
+    .level-goal-bar {
+      height: 8px;
+      background: var(--bg-soft);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .level-goal-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fill-zero {
+      background: #38BDF8;
+    }
+
+    .fill-beginner {
+      background: #34D399;
+    }
+
+    .fill-intermediate {
+      background: #FBBF24;
+    }
+
+    .fill-advanced {
+      background: var(--orange);
+    }
+
+
+    .stats-status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s ease;
+    }
+
+    .stat-box:hover {
+      background: #FAFAFA;
+    }
+
+    .stat-box-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-box-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .stat-box-num {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-box-label {
+      font-size: .8rem;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .stat-box-new {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
+    }
+
+    .stat-box-new .stat-box-dot {
+      background: #3B82F6;
+    }
+
+    .stat-box-new .stat-box-num {
+      color: #1D4ED8;
+    }
+
+    .stat-box-tomorrow {
+      background: #F0FDF4;
+      border-color: #BBF7D0;
+    }
+
+    .stat-box-tomorrow .stat-box-dot {
+      background: #22C55E;
+    }
+
+    .stat-box-tomorrow .stat-box-num {
+      color: #15803D;
+    }
+
+    .stat-box-difficult {
+      background: #F5F3FF;
+      border-color: #DDD6FE;
+    }
+
+    .stat-box-difficult .stat-box-dot {
+      background: #7C3AED;
+    }
+
+    .stat-box-difficult .stat-box-num {
+      color: #5B21B6;
+    }
+
+    @keyframes premiumPulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.15;
+      }
+
+      100% {
+        transform: scale(1.1);
+        opacity: 0.4;
+      }
+    }
+
+    .stat-box-mastered {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border-color: #FDE68A;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    }
+
+    .stat-box-mastered::after {
+      content: '✨🌟✨';
+      position: absolute;
+      right: 5px;
+      bottom: -10px;
+      font-size: 2.2rem;
+      opacity: 0.3;
+      animation: premiumPulse 2s infinite alternate ease-in-out;
+      pointer-events: none;
+    }
+
+    .stat-box-mastered .stat-box-dot {
+      background: #F59E0B;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    }
+
+    .stat-box-mastered .stat-box-num {
+      color: #92400E;
+    }
+
+    .stats-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+    }
+
+    .streak-card {
+      padding: 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #FFF7EC, #FEFBF3);
+      border: 1px solid #F3D7B4;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(90, 52, 22, 0.08);
+    }
+
+    .stats-streak-num {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      color: var(--text);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stats-streak-label {
+      font-size: 1rem;
+      color: var(--text-2);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .calendar-section {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .stats-calendar-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    .calendar-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1/1;
+      border-radius: 6px;
+      background: var(--bg-soft);
+      display: grid;
+      place-items: center;
+      font-size: .65rem;
+      color: var(--text-3);
+      font-weight: 600;
+    }
+
+    .cal-day.done {
+      background: var(--orange);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(232, 98, 42, 0.3);
+    }
+
+    .cal-day.today {
+      border: 2px solid var(--orange);
+    }
+
+
+
+
+    /* ─── SETTINGS ───────────────────────────────────────────── */
+    .settings-section {
+      margin-bottom: 22px;
+    }
+
+    .settings-title {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-size: .86rem;
+      color: var(--text-2);
+    }
+
+    .setting-sub {
+      font-size: .74rem;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background: var(--border-dk);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .toggle.on {
+      background: var(--orange);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform var(--transition);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+    }
+
+    .toggle.on::after {
+      transform: translateX(20px);
+    }
+
+    .select-input {
+      padding: 7px 10px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 8px;
+      background: var(--bg-card);
+      font-family: var(--font-sans);
+      font-size: .82rem;
+      color: var(--text-2);
+      outline: none;
+      cursor: pointer;
+      max-width: 200px;
+    }
+
+    .select-input:focus {
+      border-color: var(--orange);
+    }
+
+    .setting-input {
+      padding: 7px 10px;
+      border: 1.5px solid var(--border-dk);
+      border-radius: 8px;
+      background: var(--bg-card);
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      color: var(--text-2);
+      outline: none;
+      width: 200px;
+      max-width: 100%;
+    }
+
+    .setting-input:focus {
+      border-color: var(--orange);
+    }
+
+    /* ─── TOAST ──────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(80px + var(--safe-bottom) + 12px);
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: var(--text);
+      color: var(--bg);
+      padding: 9px 18px;
+      border-radius: 18px;
+      font-size: .84rem;
+      z-index: 999;
+      transition: transform .28s ease, opacity .28s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      opacity: 0;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .app {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .card {
+        padding: 18px 16px;
+      }
+
+      .word-main {
+        font-size: 1.6rem;
+      }
+
+      .anki-card {
+        padding: 22px 14px;
+      }
+
+      .anki-front-word {
+        font-size: 1.5rem;
+      }
+
+      .anki-back-translation {
+        font-size: 1.15rem;
+      }
+
+      .anki-btn {
+        font-size: .74rem;
+        padding: 10px 6px;
+        flex: 1 1 calc(50% - 6px);
+      }
+
+      .anki-audio-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .anki-audio-input {
+        width: 100%;
+      }
+
+      #ankiAudioCheckBtn,
+      #ankiUkEnCheckBtn {
+        width: 100%;
+      }
+
+      .anki-select,
+      .anki-mini {
+        width: 100%;
+      }
+
+      .anki-toolbar {
+        align-items: stretch;
+      }
+
+      .vocab-toolbar {
+        padding: 9px;
+      }
+
+      .vocab-toolbar-top {
+        grid-template-columns: 1fr;
+      }
+
+      .vocab-add-btn {
+        width: 100%;
+      }
+
+      .vocab-sort-select {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 11px;
+        padding: 9px 10px;
+      }
+
+      .vocab-item {
+        padding: 9px 9px;
+        gap: 8px;
+        border-radius: 12px;
+      }
+
+      .vocab-top {
+        gap: 6px;
+      }
+
+      .vocab-word {
+        font-size: .93rem;
+      }
+
+      .vocab-trans {
+        font-size: .71rem;
+      }
+
+      .vocab-status-row {
+        font-size: .63rem;
+        gap: 6px;
+      }
+
+      .vocab-sched {
+        font-size: .57rem;
+        padding: 2px 5px;
+      }
+
+      .vocab-del {
+        width: 22px;
+        height: 22px;
+        font-size: .78rem;
+      }
+
+      .stats-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-summary {
+        padding: 11px;
+      }
+
+      .stats-total-num {
+        font-size: 1.9rem;
+      }
+
+      .stats-status-grid {
+        gap: 7px;
+      }
+
+      .stat-box {
+        padding: 9px 9px;
+      }
+
+      .stat-box-num {
+        font-size: 1.25rem;
+      }
+
+      .stats-streak-num {
+        font-size: 1.65rem;
+      }
+
+      .tab {
+        font-size: .72rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <div class="logo-zap"><img src="logo.jpeg" alt="logo"></div>
+        English <span>Zap</span>
+      </div>
+      <div class="header-right">
+        <div class="streak-badge" id="streakBadge">🔥 0 днів</div>
+      </div>
+    </header>
+
+    <!-- SYNC STATUS BAR (always visible) -->
+    <div class="sync-bar" id="syncBar">
+      <div class="sync-user-info">
+        <div class="sync-user-name" id="syncUserName">Не підключено</div>
+        <div class="sync-user-sub" id="syncUserSub">Увійдіть через Telegram або введіть ID нижче</div>
+      </div>
+      <div class="sync-status">
+        <div class="dot" id="syncDot"></div>
+        <span id="syncLabel">Офлайн</span>
+      </div>
+      <button class="btn-sync-manual" id="syncBtn" onclick="syncNow()">↻ Синх.</button>
+    </div>
+
+    <!-- Manual ID input (shown only outside Telegram) -->
+    <div class="user-id-row" id="userIdRow">
+      <input class="user-id-input" id="userIdInput" type="number" inputmode="numeric" placeholder="Telegram User ID…" />
+      <button class="btn-connect" onclick="connectManual()">Підключити</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="anki" onclick="switchTab('anki', this)">📍 Anki</button>
+      <button class="tab active" role="tab" data-tab="vocab" onclick="switchTab('vocab', this)">📚 Словник</button>
+      <button class="tab" role="tab" data-tab="stats" onclick="switchTab('stats', this)">📊 Прогрес</button>
+      <button class="tab" role="tab" data-tab="settings" onclick="switchTab('settings', this)">⚙️ Налаш.</button>
+    </div>
+
+    <!-- ══ ANKI TAB ═══════════════════════════════════════════ -->
+    <div id="tab-anki" class="section" role="tabpanel">
+      <div id="ankiContainer">
+        <div class="anki-empty">
+          <div class="anki-empty-icon">🃏</div>
+          <div style="font-weight:600;color:var(--text-2);margin-bottom:8px">Картки відсутні</div>
+          <div style="font-size:.85rem">Збережіть слова у вкладці «Слово»!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VOCAB TAB ══════════════════════════════════════════ -->
+    <div id="tab-vocab" class="section active" role="tabpanel">
+      <div class="vocab-toolbar">
+        <div class="vocab-toolbar-top">
+          <button class="btn btn-secondary vocab-add-btn" onclick="openCustomWordModal()">➕ Додати нове слово</button>
+          <select id="vocabSortSelect" class="vocab-sort-select" onchange="setVocabSort(this.value)">
+            <option value="due">Sort: До повторення (спочатку due)</option>
+            <option value="progress_desc">Sort: Знання слова 100→0 (краще зверху)</option>
+            <option value="progress_asc">Sort: Знання слова 0→100 (слабкі зверху)</option>
+            <option value="alpha_asc">Sort: A→Z (англ. слово)</option>
+            <option value="alpha_desc">Sort: Z→A (англ. слово)</option>
+            <option value="newest">Sort: Новіші зверху</option>
+            <option value="oldest">Sort: Старіші зверху</option>
+            <option value="reps_desc">Sort: Більше повторів зверху</option>
+            <option value="reps_asc">Sort: Менше повторів зверху</option>
+            <option value="mastered_first">Sort: Mastered зверху</option>
+            <option value="mastered_last">Sort: Mastered знизу</option>
+            <option value="source_tg_first">Sort: Telegram слова зверху</option>
+            <option value="source_custom_first">Sort: Custom слова зверху</option>
+          </select>
+        </div>
+        <div class="vocab-filters-row">
+          <button class="vocab-filter-btn active" data-vfil="all" onclick="setVocabStatusFilter('all')">Всі</button>
+          <button class="vocab-filter-btn" data-vfil="new" onclick="setVocabStatusFilter('new')">📥 Нові</button>
+          <button class="vocab-filter-btn" data-vfil="review" onclick="setVocabStatusFilter('review')">🔁 На
+            повтор</button>
+          <button class="vocab-filter-btn" data-vfil="difficult" onclick="setVocabStatusFilter('difficult')">🟣
+            Складні</button>
+          <button class="vocab-filter-btn" data-vfil="mastered" onclick="setVocabStatusFilter('mastered')">🏆
+            Закріплені</button>
+        </div>
+        <div class="vocab-search-wrap">
+          <span class="vocab-search-icon">⌕</span>
+          <input class="search-input" id="searchInput" placeholder="Пошук слова або перекладу…" oninput="filterVocab()">
+        </div>
+      </div>
+      <div id="vocabStats" style="font-size:.78rem;color:var(--text-3);margin-bottom:10px;"></div>
+      <div class="vocab-list" id="vocabList">
+        <div style="text-align:center;padding:36px;color:var(--text-3)">Словник порожній</div>
+      </div>
+    </div>
+
+    <!-- ══ STATS TAB ══════════════════════════════════════════ -->
+    <div id="tab-stats" class="section" role="tabpanel">
+      <div class="stats-layout">
+        <!-- Left Column: Word Stats & Levels -->
+        <div class="stats-left">
+          <div class="stats-summary">
+            <div class="stats-summary-title">Загальний прогрес</div>
+            <div class="stats-summary-row">
+              <div>
+                <div class="stats-total-num" id="statTotal">0</div>
+                <div class="stats-total-label">Слів у словнику</div>
+              </div>
+              <div class="stats-due-chip">
+                <div class="stats-due-num" id="statDue">0</div>
+                <div class="stats-due-label">На черзі</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="level-progress-card">
+            <div class="stats-summary-title" style="margin-bottom: 14px">Цілі по рівнях 🎯</div>
+            <div class="level-goal-item">
+              <div class="level-goal-head"><span class="level-goal-name">Zero</span><span class="level-goal-count"
+                  id="goalZero">0/100</span></div>
+              <div class="level-goal-bar">
+                <div class="level-goal-fill fill-zero" id="barZero" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="level-goal-item">
+              <div class="level-goal-head"><span class="level-goal-name">Beginner</span><span class="level-goal-count"
+                  id="goalBeginner">0/600</span></div>
+              <div class="level-goal-bar">
+                <div class="level-goal-fill fill-beginner" id="barBeginner" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="level-goal-item">
+              <div class="level-goal-head"><span class="level-goal-name">Intermediate</span><span
+                  class="level-goal-count" id="goalIntermediate">0/2000</span></div>
+              <div class="level-goal-bar">
+                <div class="level-goal-fill fill-intermediate" id="barIntermediate" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="level-goal-item">
+              <div class="level-goal-head"><span class="level-goal-name">Advanced</span><span class="level-goal-count"
+                  id="goalAdvanced">0/5000</span></div>
+              <div class="level-goal-bar">
+                <div class="level-goal-fill fill-advanced" id="barAdvanced" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-status-grid">
+            <div class="stat-box stat-box-new">
+              <div class="stat-box-left">
+                <div class="stat-box-dot"></div>
+                <div class="stat-box-label">📥 Нові слова</div>
+              </div>
+              <div class="stat-box-num" id="statNewWords">0</div>
+            </div>
+            <div class="stat-box stat-box-tomorrow">
+              <div class="stat-box-left">
+                <div class="stat-box-dot"></div>
+                <div class="stat-box-label">🔁 На повтор</div>
+              </div>
+              <div class="stat-box-num" id="statTomorrow">0</div>
+            </div>
+            <div class="stat-box stat-box-difficult">
+              <div class="stat-box-left">
+                <div class="stat-box-dot"></div>
+                <div class="stat-box-label">🟣 Складні</div>
+              </div>
+              <div class="stat-box-num" id="statDifficult">0</div>
+            </div>
+            <div class="stat-box stat-box-mastered">
+              <div class="stat-box-left">
+                <div class="stat-box-dot"></div>
+                <div class="stat-box-label">🏆 Закріплені</div>
+              </div>
+              <div class="stat-box-num" id="statMastered">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Streak & Calendar -->
+        <div class="stats-right">
+          <div class="streak-card">
+            <div class="stats-streak-num" id="statStreak">0</div>
+            <div class="stats-streak-label">Серія днів 🔥</div>
+            <div style="font-size: .78rem; color: var(--text-3)">Ви займаєтесь без перерв!</div>
+          </div>
+
+          <div class="calendar-section">
+            <div class="stats-calendar-title">Активність за 30 днів</div>
+            <div class="calendar-row" id="calendarRow"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══ SETTINGS TAB ═══════════════════════════════════════ -->
+    <div id="tab-settings" class="section" role="tabpanel">
+      <div class="settings-section">
+        <div class="settings-title">🎙 Озвучення</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Edge TTS</div>
+            <div class="setting-sub">Потрібен локальний сервер (api_server.py)</div>
+          </div>
+          <button class="toggle on" id="ttsToggle"
+            onclick="this.classList.toggle('on');state.ttsEnabled=this.classList.contains('on');saveState()"></button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Голос</div>
+          <select class="select-input" id="voiceSelect" onchange="state.voice=this.value;saveState()">
+            <option value="en-GB-RyanNeural">en-GB Ryan (Male)</option>
+            <option value="en-US-JennyNeural">en-US Jenny (Female)</option>
+            <option value="en-US-GuyNeural">en-US Guy (Male)</option>
+            <option value="en-GB-SoniaNeural">en-GB Sonia (Female)</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">🤖 API</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">URL сервера</div>
+            <div class="setting-sub">Edge TTS + синхронізація з ботом</div>
+          </div>
+          <input class="setting-input" id="apiUrlInput" value="" onchange="state.apiUrl=this.value.trim();saveState()"
+            placeholder="http://localhost:8765">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Gemini API Key</div>
+          <input class="setting-input" id="geminiKeyInput" type="password" placeholder="AIza…"
+            onchange="state.geminiKey=this.value.trim();saveState()">
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Автосинхронізація</div>
+            <div class="setting-sub">Оновлювати слова кожні 5 хв.</div>
+          </div>
+          <button class="toggle on" id="autoSyncToggle"
+            onclick="this.classList.toggle('on');toggleAutoSync();saveState()"></button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">🃏 Anki SRS</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Автозапуск повторення</div>
+            <div class="setting-sub">Показувати сповіщення при відкритті</div>
+          </div>
+          <button class="toggle on" id="autoAnkiToggle"
+            onclick="this.classList.toggle('on');state.autoAnki=this.classList.contains('on');saveState()"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Автоозвучка карток</div>
+            <div class="setting-sub">Автоматично читати слово при відкритті картки</div>
+          </div>
+          <button class="toggle on" id="ankiAutoAudioToggle"
+            onclick="this.classList.toggle('on');state.ankiAutoAudio=this.classList.contains('on');saveState()"></button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">💾 Дані</div>
+        <div class="setting-row">
+          <div class="setting-label">Telegram User ID (ручний ввід)</div>
+          <input class="setting-input" id="manualTgIdInput" type="number" inputmode="numeric" placeholder="861217697"
+            onchange="state.tgUserId=this.value.trim();saveState()">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Експортувати словник (JSON)</div>
+          <button class="btn btn-secondary" onclick="exportData()"
+            style="padding:8px 14px;font-size:.78rem">Завантажити</button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Очистити локальні дані</div>
+          <button class="btn btn-secondary" onclick="clearData()"
+            style="padding:8px 14px;font-size:.78rem;color:#DC2626;border-color:#DC2626">Очистити</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+  <div id="toast" role="alert" aria-live="polite"></div>
+  <div id="customWordModal" class="custom-word-modal" aria-hidden="true">
+    <div class="custom-word-overlay" onclick="closeCustomWordModal()"></div>
+    <div class="custom-word-dialog">
+      <div class="custom-word-head">
+        <div class="custom-word-title">➕ Додати своє слово</div>
+        <button type="button" class="custom-word-close" onclick="closeCustomWordModal()">Закрити</button>
+      </div>
+      <div class="custom-add">
+        <div class="custom-add-grid">
+          <input id="customWordEn" class="custom-add-input" placeholder="English word *">
+          <input id="customWordUk" class="custom-add-input" placeholder="Український переклад *">
+          <input id="customWordTranscribe" class="custom-add-input" placeholder="Transcription (optional)">
+          <input id="customWordPronUa" class="custom-add-input" placeholder="Як читати українською (optional)">
+          <input id="customWordExample" class="custom-add-input full" placeholder="Example EN (optional)">
+          <input id="customWordExampleUk" class="custom-add-input full" placeholder="Приклад UK (optional)">
+        </div>
+        <div class="custom-add-row">
+          <select id="customWordLevel" class="anki-select">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+            <option value="zero">Zero</option>
+          </select>
+          <button class="btn btn-primary" style="padding:9px 14px;flex:0" onclick="addCustomWord()">Зберегти</button>
+        </div>
+        <div class="custom-add-note">* Обовʼязково: English word + переклад.</div>
+      </div>
+    </div>
+  </div>
+  <div id="wordModal" class="word-modal" aria-hidden="true">
+    <div class="word-modal-overlay" id="wordModalOverlay"></div>
+    <div class="word-modal-dialog" role="dialog" aria-modal="true" aria-label="Word details">
+      <div class="word-modal-head">
+        <div class="word-modal-title">Деталі слова</div>
+        <button type="button" class="word-modal-close" id="wordModalClose">Закрити</button>
+      </div>
+      <div id="wordModalBody"></div>
+    </div>
+  </div>
+  <div id="deleteConfirmModal" class="word-modal" aria-hidden="true">
+    <div class="word-modal-overlay" id="deleteConfirmOverlay"></div>
+    <div class="word-modal-dialog" role="dialog" aria-modal="true" aria-label="Delete confirmation">
+      <div class="word-modal-head">
+        <div class="word-modal-title">Підтвердження видалення</div>
+      </div>
+      <div style="padding:4px 2px 2px">
+        <div id="deleteConfirmText" style="font-size:.9rem;color:var(--text-2);margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button type="button" class="btn btn-secondary" id="deleteConfirmCancel"
+            style="padding:8px 12px">Скасувати</button>
+          <button type="button" class="btn btn-secondary" id="deleteConfirmOk"
+            style="padding:8px 12px;color:#B91C1C;border-color:#B91C1C">Видалити</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  CONFIG
+    // ╚══════════════════════════════════════════════════════════════╝
+    const DB_KEY = 'engzap_v2';
+    const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  STATE
+    // ╚══════════════════════════════════════════════════════════════╝
+    let state = loadState();
+    let currentWord = null;
+    let currentLevel = state.level || 'zero';
+    let ankiQueue = [];
+    let ankiIndex = 0;
+    let ankiMode = 'mix'; // mix | en-uk | uk-en | audio | choice | spelling | fill
+    let currentAnkiCardMode = 'en-uk';
+    let sessionStreak = 0;
+    let ankiSessionStarted = false;
+    let vocabFilterStatus = 'all';
+
+    let currentAudio = null;
+    let autoSyncTimer = null;
+    let isSyncing = false;
+    let pendingDeleteWord = '';
+
+    // ─── Telegram WebApp detection ─────────────────────────────────
+    const TG = window.Telegram?.WebApp;
+    let tgUser = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        return raw ? JSON.parse(raw) : getDefaultState();
+      } catch {
+        return getDefaultState();
+      }
+    }
+    function getDefaultState() {
+      let defaultApi = location.origin;
+      if (location.hostname === 'engzap.chikpixels.com') {
+        defaultApi = 'https://engzap.chikpixels.com/api';
+      }
+      return {
+        level: 'zero', tgUserId: '', words: [], streak: 0,
+        lastDate: '', activity: {}, geminiKey: '', apiUrl: defaultApi,
+        deletedWords: {},
+        vocabSort: 'due',
+        voice: 'en-GB-RyanNeural', ttsEnabled: true, autoAnki: true, ankiAutoAudio: true, autoSync: true,
+      };
+    }
+    function saveState() {
+      try { localStorage.setItem(DB_KEY, JSON.stringify(state)); } catch (e) { console.warn('Save failed', e); }
+    }
+
+    function normalizeWordKey(word) {
+      return String(word || '').trim().toLowerCase();
+    }
+
+    function ensureDeletedWordsState() {
+      if (!state.deletedWords || typeof state.deletedWords !== 'object') {
+        state.deletedWords = {};
+      }
+    }
+
+    function migrateApiUrlDefault() {
+      const onMainDomain = location.hostname === 'engzap.chikpixels.com';
+      if (!onMainDomain) return;
+      const target = 'https://engzap.chikpixels.com/api';
+      const current = (state.apiUrl || '').trim().replace(/\/+$/, '');
+      const legacy = new Set([
+        '',
+        'http://api.engzap.chikpixels.com',
+        'https://api.engzap.chikpixels.com',
+        'http://engzap.chikpixels.com/api',
+      ]);
+      if (legacy.has(current)) {
+        state.apiUrl = target;
+        saveState();
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  TELEGRAM WEBAPP INIT
+    // ╚══════════════════════════════════════════════════════════════╝
+    function initTelegram() {
+      // Always show manual ID input in browser mode.
+      // In Telegram mode, show it only if Telegram user payload is missing.
+      const inTelegram = !!TG;
+      const hasTelegramUser = !!TG?.initDataUnsafe?.user;
+      const userIdRow = document.getElementById('userIdRow');
+      const userIdInput = document.getElementById('userIdInput');
+
+      if (!inTelegram || !hasTelegramUser) {
+        userIdRow.classList.add('visible');
+      } else {
+        userIdRow.classList.remove('visible');
+      }
+
+      if (state.tgUserId && userIdInput) {
+        userIdInput.value = state.tgUserId;
+      }
+
+      if (!hasTelegramUser && state.tgUserId) {
+        updateSyncUI('connecting');
+      }
+
+      if (!TG) return;
+
+      TG.ready();
+      TG.expand(); // expand to full screen
+
+      // Keep app in a consistent near-light theme even in Telegram dark mode.
+
+      tgUser = TG.initDataUnsafe?.user;
+      if (tgUser) {
+        const uid = String(tgUser.id);
+        state.tgUserId = uid;
+        saveState();
+
+        const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+        document.getElementById('syncUserName').textContent = `👤 ${name}`;
+        document.getElementById('syncUserSub').textContent = `ID: ${uid}`;
+        document.getElementById('syncBar').classList.add('connected');
+      }
+
+      // Setup Telegram back button if needed
+      TG.BackButton?.onClick(() => {
+        if (document.getElementById('customWordModal')?.classList.contains('show')) {
+          closeCustomWordModal();
+          return;
+        }
+        const activeTab = document.querySelector('.section.active');
+        if (activeTab?.id !== 'tab-vocab') {
+          switchTab('vocab', document.querySelector('.tab[data-tab="vocab"]'));
+        } else {
+          TG.close();
+        }
+      });
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  SYNC
+    // ╚══════════════════════════════════════════════════════════════╝
+    function updateSyncUI(status, msg) {
+      const dot = document.getElementById('syncDot');
+      const label = document.getElementById('syncLabel');
+      const bar = document.getElementById('syncBar');
+      const btn = document.getElementById('syncBtn');
+
+      dot.className = 'dot';
+      bar.classList.remove('connected', 'error');
+
+      if (status === 'connecting') {
+        dot.classList.add('pulse');
+        label.textContent = msg || 'Синхронізація…';
+        btn.disabled = true;
+        btn.textContent = '…';
+      } else if (status === 'ok') {
+        dot.classList.add('ok');
+        label.textContent = msg || 'Синхронізовано';
+        bar.classList.add('connected');
+        btn.disabled = false;
+        btn.textContent = '↻ Синх.';
+      } else if (status === 'error') {
+        dot.classList.add('err');
+        label.textContent = msg || 'Помилка';
+        bar.classList.add('error');
+        btn.disabled = false;
+        btn.textContent = '↻ Синх.';
+      } else {
+        // idle / offline
+        label.textContent = msg || 'Офлайн';
+        btn.disabled = false;
+        btn.textContent = '↻ Синх.';
+      }
+    }
+
+    async function syncWithBot(uid, silent = false) {
+      if (!uid || isSyncing) return;
+      const apiUrl = resolveApiBaseUrl();
+      if (!apiUrl) { updateSyncUI('error', 'Немає URL сервера'); return; }
+
+      isSyncing = true;
+      updateSyncUI('connecting');
+
+      try {
+        // ── STEP 1: Push local words + full SRS state to server ──────────
+        if (state.words.length > 0) {
+          try {
+            await fetch(`${apiUrl}/user_words/${uid}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ words: state.words }),
+            });
+          } catch (pushErr) {
+            console.warn('[Sync] Push failed (offline?), skipping push:', pushErr?.message);
+          }
+        }
+
+        // ── STEP 2: Pull merged server state ─────────────────────────────
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        const r = await fetch(`${apiUrl}/user_words/${uid}`, {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json' }
+        });
+        clearTimeout(timeout);
+
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+
+        ensureDeletedWordsState();
+        // Build map of current local words by key
+        const localMap = new Map(state.words.map(w => [normalizeWordKey(w.word), w]));
+        let added = 0;
+
+        for (const sw of data.words || []) {
+          if (!sw.word) continue;
+          const key = normalizeWordKey(sw.word);
+          if (state.deletedWords[key]) continue;
+
+          const local = localMap.get(key);
+          if (!local) {
+            // Word exists on server but not local — add it
+            state.words.push({
+              ...sw,
+              source: sw.source || 'telegram',
+              nextReview: sw.nextReview ?? Date.now(),
+              ef: sw.ef ?? 2.5,
+              repetitions: sw.repetitions ?? 0,
+            });
+            localMap.set(key, state.words[state.words.length - 1]);
+            added++;
+          } else {
+            // Word exists on both — merge: keep the more-studied version
+            const serverReps = Number(sw.repetitions || 0);
+            const localReps = Number(local.repetitions || 0);
+            if (serverReps > localReps) {
+              // Server has more progress (another device studied this word)
+              Object.assign(local, {
+                repetitions: sw.repetitions,
+                ef: sw.ef ?? local.ef,
+                nextReview: sw.nextReview ?? local.nextReview,
+                lastRated: sw.lastRated ?? local.lastRated,
+                intervalDays: sw.intervalDays ?? local.intervalDays,
+                srsStatus: sw.srsStatus ?? local.srsStatus,
+                mastered: sw.mastered ?? local.mastered,
+                info: sw.info || local.info,
+              });
+            }
+          }
+        }
+
+        saveState();
+        await syncProgressFromServer(uid);
+        updateSyncUI('ok', `Синхр. (+${added} нових)`);
+        updateStatsUI();
+        renderVocab(document.getElementById('searchInput')?.value || '');
+        if (!silent) {
+          if (added > 0) toast(`✅ Додано ${added} слів з інших пристроїв!`);
+          else toast('✅ Синхронізовано між пристроями');
+        }
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          updateSyncUI('error', 'Таймаут');
+          if (!silent) toast('⏱ Сервер не відповідає');
+        } else {
+          updateSyncUI('error', 'Сервер недоступний');
+          if (!silent) toast('⚠️ Сервер недоступний — дані збережено локально');
+        }
+        console.warn('[Sync]', e.message);
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+
+    async function syncProgressFromServer(uid) {
+      if (!uid) return;
+      const apiUrl = resolveApiBaseUrl();
+      if (!apiUrl) return;
+      try {
+        const r = await fetch(`${apiUrl}/user_progress/${uid}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!r.ok) return;
+        const p = await r.json();
+        if (p && typeof p.activity === 'object' && p.activity) state.activity = p.activity;
+        if (typeof p?.streak === 'number') state.streak = p.streak;
+        if (typeof p?.lastDate === 'string') state.lastDate = p.lastDate;
+        saveState();
+      } catch (e) {
+        console.warn('[Progress sync from server]', e?.message || e);
+      }
+    }
+
+    async function syncProgressToServer(uid) {
+      if (!uid) return;
+      const apiUrl = resolveApiBaseUrl();
+      if (!apiUrl) return;
+      try {
+        await fetch(`${apiUrl}/user_progress/${uid}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            activity: state.activity || {},
+            streak: state.streak || 0,
+            lastDate: state.lastDate || '',
+          })
+        });
+      } catch (e) {
+        console.warn('[Progress sync to server]', e?.message || e);
+      }
+    }
+
+    async function deleteWordOnServer(uid, word) {
+      if (!uid || !word) return;
+      const apiUrl = resolveApiBaseUrl();
+      if (!apiUrl) return;
+      const qs = new URLSearchParams({ word: String(word) });
+      try {
+        const r = await fetch(`${apiUrl}/user_words/${uid}?${qs.toString()}`, {
+          method: 'DELETE',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (r.status === 405) {
+          console.warn('[Delete word on server] DELETE not supported (405). Keeping local tombstone only.');
+        }
+      } catch (e) {
+        console.warn('[Delete word on server]', e?.message || e);
+      }
+    }
+
+    async function syncNow() {
+      const uid = state.tgUserId || document.getElementById('userIdInput')?.value?.trim();
+      if (!uid) { toast('Введіть Telegram User ID'); return; }
+      state.tgUserId = uid;
+      saveState();
+      await syncWithBot(uid);
+    }
+
+    async function connectManual() {
+      const uid = document.getElementById('userIdInput')?.value?.trim();
+      if (!uid || !/^\d+$/.test(uid)) { toast('Введіть коректний числовий ID'); return; }
+      state.tgUserId = uid;
+      saveState();
+
+      // Update UI
+      document.getElementById('syncUserName').textContent = `👤 ID: ${uid}`;
+      document.getElementById('syncUserSub').textContent = 'Ручне підключення';
+      document.getElementById('manualTgIdInput').value = uid;
+
+      await syncWithBot(uid);
+    }
+
+    function toggleAutoSync() {
+      const on = document.getElementById('autoSyncToggle').classList.contains('on');
+      state.autoSync = on;
+      if (on) startAutoSync(); else stopAutoSync();
+    }
+
+    function startAutoSync() {
+      stopAutoSync();
+      if (!state.autoSync || !state.tgUserId) return;
+      autoSyncTimer = setInterval(() => syncWithBot(state.tgUserId, true), AUTO_SYNC_INTERVAL_MS);
+    }
+    function stopAutoSync() {
+      if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
+    }
+
+    function resolveApiBaseUrl() {
+      let apiUrl = (document.getElementById('apiUrlInput')?.value || state.apiUrl || '').trim();
+      if (apiUrl.includes('api.engzap.chikpixels.com')) {
+        apiUrl = 'https://engzap.chikpixels.com/api';
+      }
+      if (!apiUrl && location.hostname === 'engzap.chikpixels.com') {
+        apiUrl = 'https://engzap.chikpixels.com/api';
+      }
+      if (!apiUrl) {
+        apiUrl = location.origin;
+      }
+      return apiUrl.replace(/\/+$/, '');
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  TABS
+    // ╚══════════════════════════════════════════════════════════════╝
+    function switchTab(name, btnEl) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      const section = document.getElementById('tab-' + name);
+      if (section) section.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+      if (name === 'anki') initAnki();
+      if (name === 'vocab') renderVocab();
+      if (name === 'stats') renderStats();
+      // Telegram BackButton
+      if (TG) {
+        if (name !== 'vocab') TG.BackButton?.show();
+        else TG.BackButton?.hide();
+      }
+    }
+
+    function openCustomWordModal() {
+      const modal = document.getElementById('customWordModal');
+      if (!modal) return;
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      refreshModalScrollLock();
+      document.getElementById('customWordEn')?.focus();
+      if (TG) TG.BackButton?.show();
+    }
+
+    function closeCustomWordModal() {
+      const modal = document.getElementById('customWordModal');
+      if (!modal) return;
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      refreshModalScrollLock();
+      if (TG) {
+        const activeTab = document.querySelector('.section.active');
+        if (activeTab?.id === 'tab-vocab') TG.BackButton?.hide();
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  LEVEL
+    // ╚══════════════════════════════════════════════════════════════╝
+    function selectLevel(level, btn) {
+      currentLevel = level; state.level = level; saveState();
+      document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ─── Set level buttons from state ─────────────────────────────
+    function restoreLevelUI() {
+      const levels = ['zero', 'beginner', 'intermediate', 'advanced'];
+      document.querySelectorAll('.lvl-btn').forEach((b, i) => {
+        b.classList.toggle('active', levels[i] === currentLevel);
+      });
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  SRS
+    // ╚══════════════════════════════════════════════════════════════╝
+    function srsNext(word, rating) {
+      const now = Date.now();
+      const safeRating = Number.isInteger(rating) ? rating : 0;
+      const intervals = { 0: 0, 1: 1, 2: 7, 3: 36500 }; // days
+      const ef = Math.max(1.3, (word.ef || 2.5) + (0.1 - (3 - safeRating) * (0.08 + (3 - safeRating) * 0.02)));
+      const nextDays = intervals[safeRating] ?? 1;
+      const status = safeRating === 0 ? 'again' : safeRating === 1 ? 'difficult' : safeRating === 2 ? 'easy' : 'mastered';
+      return {
+        ...word, ef,
+        nextReview: now + nextDays * 86400000,
+        repetitions: (word.repetitions || 0) + 1,
+        lastRated: now,
+        intervalDays: nextDays,
+        srsStatus: status,
+        mastered: safeRating === 3,
+      };
+    }
+
+    function computeWordKnowledgeProgress(word, nowTs = Date.now()) {
+      if (!word) return 0;
+      if (word.mastered || word.srsStatus === 'mastered') return 100;
+      const status = word.srsStatus || 'new';
+      const intervalDays = Math.max(0, Number(word.intervalDays || 0));
+      const lastRated = Number(word.lastRated || 0);
+      if (!lastRated || status === 'new') return 0;
+      const elapsedDays = Math.max(0, (nowTs - lastRated) / 86400000);
+
+      if (status === 'again') {
+        return Math.max(4, Math.round(14 - Math.min(elapsedDays, 1) * 10));
+      }
+
+      const base = status === 'difficult' ? 62 : 96; // keep mastered visually unique
+      const floorAtDue = status === 'difficult' ? 28 : 38;
+      const effectiveInterval = Math.max(1, intervalDays || (status === 'difficult' ? 1 : 7));
+      const ratio = elapsedDays / effectiveInterval;
+
+      if (ratio <= 1) {
+        return Math.max(4, Math.min(96, Math.round(base - (base - floorAtDue) * ratio)));
+      }
+      const afterDue = ratio - 1;
+      const overdue = floorAtDue - afterDue * (status === 'difficult' ? 24 : 18);
+      return Math.max(4, Math.min(96, Math.round(overdue)));
+    }
+
+    function applyWordStatusByKey(wordKey, status) {
+      const idx = state.words.findIndex(sw => normalizeWordKey(sw.word) === normalizeWordKey(wordKey));
+      if (idx === -1) return false;
+      const ratingMap = { again: 0, difficult: 1, easy: 2, mastered: 3 };
+      const rating = ratingMap[status];
+      if (rating === undefined) return false;
+      const updated = srsNext(state.words[idx], rating);
+      state.words[idx] = updated;
+      saveState();
+      updateStatsUI();
+      renderVocab(document.getElementById('searchInput')?.value || '');
+      return true;
+    }
+
+    function getDueWords() {
+      const now = Date.now();
+      return state.words.filter(w => !w.nextReview || w.nextReview <= now);
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  API CALLS
+    // ╚══════════════════════════════════════════════════════════════╝
+    async function fetchWordFromApi() {
+      const zeroWords = ['the', 'a', 'is', 'are', 'am', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'have', 'it', 'this', 'that', 'be', 'do', 'go', 'come', 'see', 'get', 'can',
+        'you', 'he', 'she', 'we', 'they', 'my', 'what', 'who', 'how', 'when', 'why'];
+      if (currentLevel === 'zero') return zeroWords[Math.floor(Math.random() * zeroWords.length)];
+
+      const cfg = {
+        beginner: { topics: ['food', 'home', 'family', 'animals', 'body', 'weather', 'school', 'colors'], minF: 10, maxF: 9999, minL: 2, maxL: 8 },
+        intermediate: { topics: ['travel', 'work', 'health', 'money', 'technology', 'society', 'emotion', 'nature'], minF: 1, maxF: 50, minL: 6, maxL: 12 },
+        advanced: { topics: ['philosophy', 'literature', 'science', 'rhetoric', 'psychology'], minF: 0.01, maxF: 2, minL: 8, maxL: 20 },
+      }[currentLevel];
+
+      const topic = cfg.topics[Math.floor(Math.random() * cfg.topics.length)];
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 6000);
+        const r = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(topic)}&md=f&max=100`,
+          { signal: controller.signal });
+        if (!r.ok) throw new Error('datamuse error');
+        const words = await r.json();
+        const filtered = words.filter(w => {
+          const freq = parseFloat((w.tags || []).find(t => t.startsWith('f:'))?.slice(2) || '0');
+          return freq > cfg.minF && freq < cfg.maxF &&
+            w.word.length >= cfg.minL && w.word.length <= cfg.maxL &&
+            /^[a-z]+$/.test(w.word);
+        });
+        // avoid words already in vocab
+        const known = new Set(state.words.map(w => w.word));
+        const novel = filtered.filter(w => !known.has(w.word));
+        const pool = novel.length ? novel : filtered;
+        if (pool.length) return pool[Math.floor(Math.random() * pool.length)].word;
+      } catch (e) { console.warn('[fetchWord]', e.message); }
+      return ['hello', 'world', 'cat', 'dog', 'book', 'time', 'water', 'day', 'tree', 'house'][Math.floor(Math.random() * 10)];
+    }
+
+    async function fetchGeminiInfo(word) {
+      const key = (document.getElementById('geminiKeyInput')?.value || state.geminiKey || '').trim();
+      if (!key) {
+        return {
+          emoji: '✨', transcribe: '/…/', definition: '⚠️ Gemini API key не вказано у Налаштуваннях.',
+          ukrainian: word, pron_ua: 'н/д', example: `Use the word "${word}" in a sentence.`, example_uk: '—'
+        };
+      }
+      const levelHints = {
+        zero: 'Use extremely simple Ukrainian. Max 1 very short sentence.',
+        beginner: 'Use very simple words. Definition in Ukrainian.',
+        intermediate: 'Use clear everyday language. Definition in Ukrainian.',
+        advanced: 'Use sophisticated English. Definition in English.',
+      };
+      const prompt = `You are an English learning assistant for Ukrainian speakers.
+Explain the word or phrase: "${word}"
+Level: ${currentLevel}
+${levelHints[currentLevel]}
+Reply ONLY in this EXACT format with no extra text:
+EMOJI: (one emoji that represents the word)
+TRANSCRIBE: (IPA transcription like /həʊm/)
+DEFINITION: (short definition appropriate for level)
+TRANSLATION: (Ukrainian translation)
+PRON_UA: (how to pronounce in Ukrainian letters, e.g. хоум)
+EXAMPLE: (one natural English example sentence)
+EXAMPLE_UK: (Ukrainian translation of the example sentence)`;
+
+      try {
+        let data, lastErr;
+        const apiVersions = ['v1beta', 'v1'];
+        for (const apiVer of apiVersions) {
+          for (const model of GEMINI_MODELS) {
+            // Each attempt gets its own controller so a timeout on one try
+            // doesn't cancel the next model/version attempt.
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 15000);
+            const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${key}`;
+            let r;
+            try {
+              r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+                })
+              });
+            } finally { clearTimeout(timer); }
+            data = await r.json();
+            if (data.error) {
+              const code = data.error.code || r.status;
+              const msg = data.error.message || 'Unknown error';
+              const status = data.error.status || '';
+              let errMsg = msg;
+              if (code === 404) { lastErr = new Error(`Model ${model} not found`); continue; }
+              if (code === 403 || r.status === 403) errMsg = `403 Permission denied. Enable Generative Language API at console.cloud.google.com and check API key restrictions.`;
+              else if (code === 400 || r.status === 400) {
+                if (msg.includes('location') || msg.includes('supported')) errMsg = `400 Location not supported. Gemini API may not be available in your region. Try a VPN or different location.`;
+                else if (msg.includes('billing') || msg.includes('FAILED_PRECONDITION')) errMsg = `400 Billing required. Enable billing in Google AI Studio / Cloud Console for your region.`;
+                else errMsg = `400 Bad request: ${msg}`;
+              } else if (code === 401 || r.status === 401) errMsg = `401 Invalid API key. Check your key at aistudio.google.com/apikey`;
+              else if (code === 429 || r.status === 429) errMsg = `429 Rate limit exceeded. Try again in a moment.`;
+              lastErr = new Error(errMsg);
+              throw lastErr;
+            }
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) break;
+            lastErr = new Error('Empty response from Gemini');
+          }
+          if (data && !data.error && data.candidates?.[0]?.content?.parts?.[0]?.text) break;
+        }
+        if (data && data.error && lastErr) throw lastErr;
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!text && data?.candidates?.length === 0) throw new Error('Response blocked or empty. Try a different word.');
+        const extract = label => {
+          // Handle plain "LABEL: value" and markdown "**LABEL:** value"
+          const m = text.match(new RegExp(`^\\*{0,2}${label}\\*{0,2}:\\s*(.+)`, 'm'));
+          return m ? m[1].trim().replace(/^[*_`]+|[*_`]+$/g, '') : '—';
+        };
+        return {
+          emoji: extract('EMOJI'), transcribe: extract('TRANSCRIBE'),
+          definition: extract('DEFINITION'), ukrainian: extract('TRANSLATION'),
+          pron_ua: extract('PRON_UA'), example: extract('EXAMPLE'), example_uk: extract('EXAMPLE_UK')
+        };
+      } catch (e) {
+        console.error('[Gemini]', e.message);
+        if (e.name === 'AbortError') return { emoji: '⏱', transcribe: '—', definition: 'Таймаут Gemini API. Спробуйте ще раз.', ukrainian: word, pron_ua: '—', example: '—', example_uk: '—' };
+        const friendly = e.message || String(e);
+        return { emoji: '⚠️', transcribe: '—', definition: `Gemini: ${friendly}`, ukrainian: word, pron_ua: '—', example: '—', example_uk: '—' };
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  EDGE TTS
+    // ╚══════════════════════════════════════════════════════════════╝
+    async function playEdgeTts(text, btnEl) {
+      const ttsOn = document.getElementById('ttsToggle')?.classList.contains('on');
+      if (!ttsOn) return;
+      const payloadText = (text || '').trim();
+      if (!payloadText || payloadText === '—' || payloadText === '-') {
+        toast('Немає тексту для озвучення');
+        return;
+      }
+
+      const apiUrl = resolveApiBaseUrl();
+      if (!apiUrl) { toast('⚠️ Вкажіть URL сервера у Налаштуваннях'); return; }
+      if (location.protocol === 'https:' && apiUrl.startsWith('http://')) {
+        toast('⚠️ Для Telegram потрібен HTTPS API URL');
+        return;
+      }
+      const voice = document.getElementById('voiceSelect')?.value || state.voice;
+
+      if (btnEl) btnEl.classList.add('playing');
+      // Stop previous audio
+      if (currentAudio) { currentAudio.pause(); try { URL.revokeObjectURL(currentAudio.src); } catch { } currentAudio = null; }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const r = await fetch(`${apiUrl}/tts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({ text: payloadText, voice })
+        });
+        clearTimeout(timeout);
+        if (!r.ok) throw new Error(`TTS HTTP ${r.status}`);
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        currentAudio = new Audio(url);
+        currentAudio.onended = () => {
+          if (btnEl) btnEl.classList.remove('playing');
+          try { URL.revokeObjectURL(url); } catch { }
+          currentAudio = null;
+        };
+        currentAudio.onerror = () => {
+          if (btnEl) btnEl.classList.remove('playing');
+          currentAudio = null;
+        };
+        await currentAudio.play();
+      } catch (e) {
+        if (btnEl) btnEl.classList.remove('playing');
+        if (e.name !== 'AbortError') {
+          console.warn('[TTS]', e.message);
+          toast('🔇 Edge TTS недоступний. Запустіть api_server.py та перевірте HTTPS URL.');
+        }
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  WORD CARD RENDER
+    // ╚══════════════════════════════════════════════════════════════╝
+    function renderWordCard(wordObj) {
+      const { word, info } = wordObj;
+      if (!info) return '<div class="loading-state"><div>Дані відсутні</div></div>';
+      const levelLabels = { zero: '🔰 Zero', beginner: '🌱 Beginner', intermediate: '📘 Intermediate', advanced: '🎓 Advanced' };
+
+      // Use data attributes instead of inline onclick with string literals to avoid XSS
+      const card = document.createElement('div');
+      card.innerHTML = `
+  <div class="card" id="mainWordCard">
+    <div class="card-emoji">${escHtml(info.emoji || '✨')}</div>
+    <div class="word-row">
+      <div class="word-main">${escHtml(word)}</div>
+      <div class="word-transcribe">${escHtml(info.transcribe || '')}</div>
+    </div>
+    <div class="word-pron-ua">${escHtml(info.pron_ua || '')}</div>
+    <div class="pill-row">
+      <span class="pill pill-level">${levelLabels[currentLevel] || currentLevel}</span>
+    </div>
+    <div class="section-label">Визначення</div>
+    <div class="definition">${escHtml(info.definition || '')}</div>
+    <div class="section-label">Переклад</div>
+    <div class="translation">${escHtml(info.ukrainian || '')}</div>
+    <div class="section-label">Приклад</div>
+    <div class="example-en">"${escHtml(info.example || '')}"</div>
+    <div class="example-ua">${escHtml(info.example_uk || '')}</div>
+    <div class="audio-title">🎧 Озвучка</div>
+    <div class="audio-row">
+      <button type="button" class="audio-btn" id="audioWordBtn" data-tts="${escAttr(word)}">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <div class="audio-wave"><span></span><span></span><span></span><span></span><span></span></div>
+        🔊 Слово
+      </button>
+      <button type="button" class="audio-btn" data-tts="${escAttr(info.example || '')}">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <div class="audio-wave"><span></span><span></span><span></span><span></span><span></span></div>
+        🗣 Приклад
+      </button>
+      <a href="https://www.google.com/search?q=${encodeURIComponent(word)}+meaning&tbm=isch"
+         target="_blank" rel="noopener" class="audio-btn" style="text-decoration:none">🖼 Картинки</a>
+    </div>
+  </div>`;
+
+      // Attach safe event listeners
+      card.querySelectorAll('[data-tts]').forEach(btn => {
+        btn.addEventListener('click', () => playEdgeTts(btn.dataset.tts, btn));
+      });
+
+      return card;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function escAttr(s) {
+      return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function getNewWord() {
+      const btn = document.getElementById('newWordBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ …'; }
+
+      const container = document.getElementById('wordCardContainer');
+      if (!container) { if (btn) { btn.disabled = false; btn.textContent = '⚡ Нове слово'; } return; }
+      container.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>Генеруємо слово…</div></div>';
+      currentWord = null;
+
+      try {
+        const word = await fetchWordFromApi();
+        const info = await fetchGeminiInfo(word);
+        currentWord = { word, info, level: currentLevel, source: 'web', addedAt: Date.now() };
+        container.innerHTML = '';
+        container.appendChild(renderWordCard(currentWord));
+
+        // Auto-play word if TTS is on
+        if (document.getElementById('ttsToggle')?.classList.contains('on')) {
+          setTimeout(() => {
+            const audioBtn = document.getElementById('audioWordBtn');
+            if (audioBtn) playEdgeTts(word, audioBtn);
+          }, 300);
+        }
+      } catch (e) {
+        console.error('[getNewWord]', e);
+        container.innerHTML = `<div class="card">
+      <div class="card-emoji">⚠️</div>
+      <div class="word-main">Помилка</div>
+      <div class="definition" style="margin-top:8px">${escHtml(e.message)}</div>
+    </div>`;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '⚡ Нове слово'; }
+      }
+    }
+
+    async function getPhrase() {
+      const phrases = {
+        zero: ['I am', 'You are', 'It is', 'I have', 'I go', 'I like', 'What is this?', 'How are you?'],
+        beginner: ['How are you?', 'Nice to meet you', 'Thank you very much', 'I don\'t understand', 'Can you help me?'],
+        intermediate: ['I\'ve been thinking about it', 'What would you recommend?', 'I\'m looking forward to it'],
+        advanced: ['Actions speak louder than words', 'Every cloud has a silver lining', 'Practice makes perfect'],
+      };
+      const pool = phrases[currentLevel] || phrases.beginner;
+      const phrase = pool[Math.floor(Math.random() * pool.length)];
+
+      const container = document.getElementById('wordCardContainer');
+      if (!container) return;
+      container.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>Генеруємо фразу…</div></div>';
+
+      try {
+        const info = await fetchGeminiInfo(phrase);
+        currentWord = { word: phrase, info, level: currentLevel, source: 'web', addedAt: Date.now() };
+        container.innerHTML = '';
+        container.appendChild(renderWordCard(currentWord));
+      } catch (e) {
+        container.innerHTML = `<div class="card"><div class="card-emoji">⚠️</div><div class="definition">${escHtml(e.message)}</div></div>`;
+      }
+    }
+
+    function saveWord() {
+      if (!currentWord) { toast('Спочатку завантажте слово'); return; }
+      const exists = state.words.find(w => w.word === currentWord.word);
+      if (exists) { toast('📚 Вже у словнику'); return; }
+      state.words.push({ ...currentWord, nextReview: Date.now(), ef: 2.5, repetitions: 0 });
+      saveState();
+      toast('🔖 Збережено у словник!');
+      updateStatsUI();
+      // Haptic feedback in Telegram
+      TG?.HapticFeedback?.impactOccurred('light');
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  ANKI
+    // ╚══════════════════════════════════════════════════════════════╝
+    function initAnki() {
+      const dueWords = getDueWords();
+      const baseWords = dueWords.length ? dueWords : [...state.words];
+      ankiQueue = buildAnkiQueueFromWords(baseWords);
+      ankiIndex = 0;
+      renderAnki();
+    }
+
+    function buildAnkiQueueFromWords(words) {
+      const cleanWords = (Array.isArray(words) ? words : []).filter(w => w && w.word);
+      if (!cleanWords.length) return [];
+      const shuffle = (arr) => {
+        const out = [...arr];
+        for (let i = out.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [out[i], out[j]] = [out[j], out[i]];
+        }
+        return out;
+      };
+      if (ankiMode === 'mix') {
+        const modes = ['en-uk', 'uk-en', 'audio'];
+        const cards = [];
+        for (const w of cleanWords) {
+          for (const mode of modes) cards.push({ word: w, mode });
+        }
+        return shuffle(cards);
+      }
+      return shuffle(cleanWords.map(w => ({ word: w, mode: ankiMode })));
+    }
+
+    function getCurrentAnkiWord() {
+      const card = ankiQueue[ankiIndex];
+      if (!card) return null;
+      return card.word || card;
+    }
+
+    function isAnkiAutoAudioOn() {
+      const toggle = document.getElementById('ankiAutoAudioToggle');
+      if (toggle) return toggle.classList.contains('on');
+      return state.ankiAutoAudio !== false;
+    }
+
+    function autoPlayAnkiReveal(word) {
+      if (!word || !isAnkiAutoAudioOn()) return;
+      setTimeout(() => playEdgeTts(word, null), 120);
+    }
+
+    function renderAnki() {
+      const cont = document.getElementById('ankiContainer');
+      if (!state.words.length) {
+        cont.innerHTML = `<div class="anki-empty">
+          <div class="anki-empty-icon">📚</div>
+          <div style="font-weight:600;color:var(--text-2);margin-bottom:8px">Немає карток для Anki</div>
+          <div style="font-size:.84rem">Синхронізуйте або додайте слова у словник.</div>
+        </div>`; return;
+      }
+
+      const isSessionFinished = ankiSessionStarted && ankiIndex >= ankiQueue.length;
+
+      if (!ankiSessionStarted || isSessionFinished) {
+        const title = isSessionFinished ? 'Сесію завершено!' : 'Тренажер Anki';
+        const icon = isSessionFinished ? '🎉' : '🧠';
+        const statsHtml = isSessionFinished ? `<div style="font-size:.9rem; margin-top:8px; color:var(--text-3); font-weight:500;">Повторено ${ankiQueue.length} карток. &nbsp;🔥 Серія: ${sessionStreak}</div>` : '';
+        const subtitle = isSessionFinished ? 'Хочете повторити ще раз?' : 'Оберіть слова для вивчення:';
+
+        const newWords = state.words.filter(w => (w.repetitions || 0) === 0);
+        const pickerItems = state.words.map(w =>
+          `<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+            <input type="checkbox" class="anki-repeat-word" value="${escAttr(w.word)}" />
+            <span style="font-weight:600">${escHtml(w.word)}</span>
+            <span style="color:var(--text-3);font-size:.82rem">${escHtml(w.info?.ukrainian || '')}</span>
+          </label>`).join('');
+
+        cont.innerHTML = `<div class="anki-empty" style="padding-top:30px;">
+          <div style="font-size:3.5rem; margin-bottom:12px;">${icon}</div>
+          <div style="font-weight:700; font-size:1.4rem; color:var(--text);">${title}</div>
+          ${statsHtml}
+          
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:24px;">
+            <button class="anki-action-btn" onclick="startAnkiRepeat('all')" style="background:var(--orange); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(232, 98, 42, 0.25);">
+              <span style="font-size:1.1rem; font-weight:700;">Повторити всі слова</span>
+            </button>
+            <button class="anki-action-btn" onclick="toggleAnkiStatusPicker()" style="background:var(--bg-card); color:var(--text); border:1.5px solid var(--border); padding:16px; border-radius:16px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <span style="font-size:1.05rem; font-weight:600;">Фільтр за статусом</span>
+            </button>
+            <button class="anki-action-btn" onclick="toggleAnkiRepeatPicker()" style="background:var(--bg-card); color:var(--text); border:1.5px solid var(--border); padding:16px; border-radius:16px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <span style="font-size:1.05rem; font-weight:600;">Вибрати конкретні слова</span>
+            </button>
+          </div>
+
+          <!-- Status Picker -->
+          <div id="ankiStatusPicker" style="display:none; margin-top:16px; text-align:left; background:var(--bg-card); border:1.5px solid var(--border); border-radius:16px; padding:16px;">
+            <div style="font-size:.95rem; color:var(--text); margin-bottom:12px; font-weight:600;">Фільтри сесії:</div>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <label class="anki-filter-label" style="background:#EFF6FF; border:1px solid #BFDBFE; padding:12px 14px; border-radius:14px; display:flex; align-items:center; gap:8px; font-weight:600; font-size:.9rem; color:#1D4ED8; cursor:pointer;">
+                  <input type="checkbox" class="anki-filt-cb" id="ankiFiltNew" checked style="accent-color:#3B82F6;"> Нові слова
+                </label>
+                <label class="anki-filter-label" style="background:#F0FDF4; border:1px solid #BBF7D0; padding:12px 14px; border-radius:14px; display:flex; align-items:center; gap:8px; font-weight:600; font-size:.9rem; color:#15803D; cursor:pointer;">
+                  <input type="checkbox" class="anki-filt-cb" id="ankiFiltRev" checked style="accent-color:#22C55E;"> На повтор
+                </label>
+                <label class="anki-filter-label" style="background:#F5F3FF; border:1px solid #DDD6FE; padding:12px 14px; border-radius:14px; display:flex; align-items:center; gap:8px; font-weight:600; font-size:.9rem; color:#5B21B6; cursor:pointer;">
+                  <input type="checkbox" class="anki-filt-cb" id="ankiFiltHard" style="accent-color:#7C3AED;"> Складні
+                </label>
+                <label class="anki-filter-label" style="background:#FFFBEB; border:1px solid #FDE68A; padding:12px 14px; border-radius:14px; display:flex; align-items:center; gap:8px; font-weight:600; font-size:.9rem; color:#92400E; cursor:pointer;">
+                  <input type="checkbox" class="anki-filt-cb" id="ankiFiltMast" style="accent-color:#F59E0B;"> Закріплені
+                </label>
+              </div>
+            </div>
+            
+            <button class="anki-action-btn" onclick="startAnkiFiltered()" style="background:var(--text); color:#fff; border:none; padding:14px; border-radius:14px; width:100%; display:block;">
+              <span style="font-size:1.05rem; font-weight:700;">Почати відфільтровані</span>
+            </button>
+          </div>
+          
+          <!-- Manual Word Picker -->
+
+          <div id="ankiRepeatPicker" style="display:none; margin-top:16px; text-align:left; background:var(--bg-card); border:1.5px solid var(--border); border-radius:16px; padding:14px;">
+            <div style="font-size:.85rem; color:var(--text-3); margin-bottom:8px; font-weight:600;">Оберіть слова для сесії:</div>
+            <div style="max-height:220px; overflow:auto; padding-right:4px;">${pickerItems || '<div style="color:var(--text-3)">Немає слів</div>'}</div>
+            <button class="btn btn-primary" onclick="startAnkiRepeatSelected()" style="margin-top:12px;width:100%">Почати вибрані</button>
+          </div>
+        </div>`;
+        return;
+      }
+
+      const total = ankiQueue.length;
+      const done = ankiIndex;
+      const pct = Math.round((done / total) * 100);
+      const card = ankiQueue[ankiIndex];
+      const w = card?.word || card;
+
+      // Determine mode for this card
+      let cardMode = card?.mode || ankiMode;
+      if (cardMode === 'mix') {
+        const modes = ['en-uk', 'uk-en', 'audio', 'choice', 'spelling', 'fill'];
+        cardMode = modes[Math.floor(Math.random() * modes.length)];
+      }
+      currentAnkiCardMode = cardMode;
+
+      // Level / SRS badge
+      const lvlClass = `lvl-${(w.level || 'beginner').replace(/\s+/g, '-')}`;
+      const lvlLabel = { zero: '🔰 Zero', beginner: '🌱 Beginner', intermediate: '📘 Intermediate', advanced: '🎓 Advanced' }[w.level] || '🌱 Beginner';
+      const reps = w.repetitions || 0;
+      const srsClass = reps === 0 ? 'srs-new' : (w.mastered ? 'srs-mastered' : 'srs-review');
+      const srsLabel = reps === 0 ? '📥 Нове' : (w.mastered ? '🏆 Mastered' : '🔁 Повтор');
+
+      // Build front content by mode
+      let frontContent = '';
+      let specialInput = '';
+
+      if (cardMode === 'en-uk') {
+        frontContent = `<div class="anki-front-word">${escHtml(w.word)}</div>
+          <div class="anki-front-transcribe">${escHtml(w.info?.transcribe || '')}</div>
+          <div class="anki-hint">Натисни, щоб відкрити · <kbd>Space</kbd></div>`;
+
+      } else if (cardMode === 'uk-en') {
+        frontContent = `<div class="anki-front-word" style="font-size:1.8rem">${escHtml(w.info?.ukrainian || '')}</div>
+          <div class="anki-front-transcribe">Згадайте або введіть англійське слово</div>`;
+        specialInput = `<div class="anki-audio-wrap">
+          <div class="anki-audio-row">
+            <input id="ankiUkEnInput" class="anki-audio-input" placeholder="Введіть англійське слово..." />
+            <button id="ankiUkEnCheckBtn" class="anki-mini on">Перевірити</button>
+          </div>
+          <div id="ankiUkEnFb" class="anki-audio-fb"></div>
+        </div>`;
+
+      } else if (cardMode === 'audio') {
+        frontContent = `<div style="margin-bottom:8px">
+          <button class="audio-btn" data-tts="${escAttr(w.word)}" style="margin:0 auto">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M8 5v14l11-7z"/></svg>
+            <div class="audio-wave"><span></span><span></span><span></span><span></span><span></span></div>
+            Послухати слово
+          </button>
+        </div>
+        <div class="anki-front-transcribe">Послухай і введи англійське слово</div>`;
+        specialInput = `<div class="anki-audio-wrap">
+          <div class="anki-audio-row">
+            <input id="ankiAudioInput" class="anki-audio-input" placeholder="Введіть слово..." />
+            <button id="ankiAudioCheckBtn" class="anki-mini on">Перевірити</button>
+          </div>
+          <div id="ankiAudioFb" class="anki-audio-fb"></div>
+        </div>`;
+
+      } else if (cardMode === 'choice') {
+        // Multiple choice: show English word, pick Ukrainian
+        const correct = w.info?.ukrainian || w.word;
+        const pool = state.words
+          .filter(x => x.word !== w.word && x.info?.ukrainian)
+          .map(x => x.info.ukrainian);
+        if (pool.length < 3) {
+          cardMode = 'en-uk';
+          frontContent = `<div class="anki-front-word">${escHtml(w.word)}</div>
+            <div class="anki-front-transcribe">${escHtml(w.info?.transcribe || '')}</div>
+            <div class="anki-hint">Натисни, щоб відкрити · <kbd>Space</kbd></div>`;
+          specialInput = '';
+        } else {
+          const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 3);
+          const opts = [...shuffled, correct].sort(() => Math.random() - 0.5);
+          const optBtns = opts.map(o =>
+            `<button class="anki-mc-option" data-answer="${escAttr(o)}" data-correct="${escAttr(correct)}">${escHtml(o)}</button>`
+          ).join('');
+          frontContent = `<div class="anki-front-word">${escHtml(w.word)}</div>
+            <div class="anki-front-transcribe">Оберіть правильний переклад</div>
+            <div class="anki-mc-grid">${optBtns}</div>`;
+        }
+
+      } else if (cardMode === 'spelling') {
+        const wordClean = w.word.toLowerCase().replace(/[^a-z ]/g, '');
+        const lettersOnly = wordClean.replace(/\s+/g, '').split('').sort(() => Math.random() - 0.5);
+        const lBtns = lettersOnly.map((l) => `<button class="anki-letter-btn" data-l="${escAttr(l)}">${escHtml(l)}</button>`).join('');
+
+        // Build the visual board replacing only letters with underscores, leaving spaces
+        let initialBoard = '';
+        for (let i = 0; i < wordClean.length; i++) {
+          initialBoard += wordClean[i] === ' ' ? '&nbsp;&nbsp;&nbsp;' : '_';
+        }
+
+        frontContent = `<div class="anki-front-word" style="font-size:1.6rem">${escHtml(w.info?.ukrainian || '')}</div>
+          <div class="anki-front-transcribe">Складіть слово з літер</div>`;
+        specialInput = `<div style="text-align:center;width:100%;margin-top:12px;">
+          <div id="ankiSpellBoard" data-target="${escAttr(wordClean)}" style="margin-bottom:12px; font-family:var(--font-mono); font-size:1.4rem; letter-spacing:4px; font-weight:700; color:var(--text); min-height:45px; border-bottom:2px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--orange);">${initialBoard}</div>
+          <div id="ankiSpellBank" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:12px;">${lBtns}</div>
+          <input type="hidden" id="ankiSpellInput" value="">
+          <button id="ankiSpellCheckBtn" class="anki-action-btn" style="display:none; margin:0 auto; padding:10px 24px; background:var(--orange); color:#fff; border:none; border-radius:12px;">Перевірити</button>
+          <div id="ankiSpellFb" class="anki-audio-fb"></div>
+        </div>`;
+
+      } else if (cardMode === 'fill') {
+        // Fill in the blank
+        const example = w.info?.example || `I use the word ${w.word} every day.`;
+        const blanked = example.replace(new RegExp(`\\b${w.word}\\b`, 'i'), `<span class="anki-blank">_____</span>`);
+        frontContent = `<div class="anki-front-transcribe" style="margin-bottom:4px">Заповніть пропуск</div>
+          <div class="anki-blank-sentence">${blanked}</div>
+          <div class="anki-front-transcribe" style="font-size:.8rem;color:var(--text-3)">${escHtml(w.info?.ukrainian || '')}</div>`;
+        specialInput = `<div class="anki-audio-wrap">
+          <div class="anki-audio-row">
+            <input id="ankiFillInput" class="anki-audio-input" placeholder="Введіть пропущене слово..." />
+            <button id="ankiFillCheckBtn" class="anki-mini on">Перевірити</button>
+          </div>
+          <div id="ankiFillFb" class="anki-audio-fb"></div>
+        </div>`;
+      }
+
+      const emojiHtml = w.info?.emoji ? `<div style="font-size:3.5rem; text-align:center; margin-bottom:12px; opacity: 0.9;">${w.info.emoji}</div>` : '';
+
+      // Back content (shown after flip/reveal)
+      const backMain = `
+        ${emojiHtml}
+        <div class="anki-back-translation">${escHtml(cardMode === 'uk-en' || cardMode === 'spelling' || cardMode === 'fill' ? w.word : (w.info?.ukrainian || ''))}</div>
+        <div class="anki-back-example">${escHtml(w.info?.transcribe || '')}${w.info?.pron_ua ? ' · ' + escHtml(w.info.pron_ua) : ''}</div>
+        
+        <div style="height: 12px;"></div>
+        <div class="section-label">Приклад</div>
+        <div class="anki-back-example">"${escHtml(w.info?.example || '')}"</div>
+        <div class="anki-back-example" style="margin-top:4px;color:var(--text-3)">${escHtml(w.info?.example_uk || '')}</div>
+        <div style="margin-top:12px">
+          <button class="audio-btn" data-tts="${escAttr(w.word)}" style="margin:0 auto">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M8 5v14l11-7z"/></svg>
+            <div class="audio-wave"><span></span><span></span><span></span><span></span><span></span></div>
+            Послухати
+          </button>
+        </div>`;
+
+      const needsFlip = cardMode === 'en-uk';
+      const hintText = needsFlip ? 'Натисни картку · Space' : '';
+
+      const frag = document.createElement('div');
+      frag.innerHTML = `
+        <div class="anki-toolbar">
+          <select id="ankiModeSelect" class="anki-select">
+            <option value="mix"      ${ankiMode === 'mix' ? 'selected' : ''}>🔀 Mix (усі режими)</option>
+            <option value="en-uk"    ${ankiMode === 'en-uk' ? 'selected' : ''}>EN → UK (переклад)</option>
+            <option value="uk-en"    ${ankiMode === 'uk-en' ? 'selected' : ''}>UK → EN (з перекладом)</option>
+            <option value="audio"    ${ankiMode === 'audio' ? 'selected' : ''}>🔊 Audio (на слух)</option>
+            <option value="choice"   ${ankiMode === 'choice' ? 'selected' : ''}>🎯 Множинний вибір</option>
+            <option value="spelling" ${ankiMode === 'spelling' ? 'selected' : ''}>✏️ Написання слова (Скласти букви)</option>
+            <option value="fill"     ${ankiMode === 'fill' ? 'selected' : ''}>📝 Пропущені слова</option>
+          </select>
+        </div>
+
+        <div class="anki-session-bar">
+          <div class="anki-streak-chip">🔥 Серія: ${sessionStreak}</div>
+          <div class="anki-remaining-chip">${done + 1} / ${total}</div>
+        </div>
+
+        <div class="anki-progress">
+          <div class="anki-bar-wrap"><div class="anki-bar" style="width:${pct}%"></div></div>
+        </div>
+
+        <div class="anki-scene">
+          <div class="anki-card" id="ankiCard">
+            <div class="anki-card-header ${lvlClass}">
+              <span class="anki-level-badge">${lvlLabel}</span>
+              <span class="anki-srs-badge ${srsClass}">${srsLabel}</span>
+            </div>
+            <div class="anki-card-body">
+              ${frontContent}
+              ${specialInput}
+              <div class="anki-back" id="ankiBack">
+                ${backMain}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="anki-action-row">
+          <button class="anki-action-btn" id="ankiHintBtn" title="Показати підказку">💡 Підказка</button>
+          <button class="anki-action-btn" id="ankiSkipBtn" title="Пропустити картку">⏭ Пропустити</button>
+        </div>
+
+        <div id="ankiRatingRow" style="display:none;margin-top:10px">
+          <div class="anki-buttons">
+            <button class="anki-btn anki-btn-again" data-rating="0">
+              <span class="anki-btn-label">🔁 Повтор</span>
+              <span class="anki-btn-interval">сьогодні</span>
+              <span class="anki-btn-key">[1]</span>
+            </button>
+            <button class="anki-btn anki-btn-hard" data-rating="1">
+              <span class="anki-btn-label">🟣 Складно</span>
+              <span class="anki-btn-interval">+1 день</span>
+              <span class="anki-btn-key">[2]</span>
+            </button>
+            <button class="anki-btn anki-btn-good" data-rating="2">
+              <span class="anki-btn-label">✅ Легко</span>
+              <span class="anki-btn-interval">+7 днів</span>
+              <span class="anki-btn-key">[3]</span>
+            </button>
+            <button class="anki-btn anki-btn-easy" data-rating="3">
+              <span class="anki-btn-label">🏆 Mastered</span>
+              <span class="anki-btn-interval">∞</span>
+              <span class="anki-btn-key">[4]</span>
+            </button>
+          </div>
+        </div>`;
+
+      // ── Attach events ────────────────────────────────────────────
+      if (needsFlip) {
+        frag.querySelector('#ankiCard').addEventListener('click', revealAnki);
+      }
+
+      frag.querySelector('#ankiModeSelect')?.addEventListener('change', e => {
+        ankiMode = e.target.value; initAnki();
+      });
+
+      // Skip
+      frag.querySelector('#ankiSkipBtn').addEventListener('click', () => {
+        const skipped = ankiQueue.splice(ankiIndex, 1)[0];
+        ankiQueue.push(skipped);
+        renderAnki();
+      });
+
+      // Hint — reveal first 2 letters + word length
+      frag.querySelector('#ankiHintBtn').addEventListener('click', () => {
+        const hint = `${w.word.slice(0, 2)}${'_'.repeat(Math.max(0, w.word.length - 2))} (${w.word.length} букв)`;
+        toast(`💡 ${hint}`);
+      });
+
+      // Audio / UK→EN / Spelling / Fill check buttons
+      frag.querySelector('#ankiAudioCheckBtn')?.addEventListener('click', checkAnkiAudioAnswer);
+      frag.querySelector('#ankiAudioInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnkiAudioAnswer(); });
+      frag.querySelector('#ankiUkEnCheckBtn')?.addEventListener('click', checkUkEnAnswer);
+      frag.querySelector('#ankiUkEnInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkUkEnAnswer(); });
+      frag.querySelector('#ankiSpellCheckBtn')?.addEventListener('click', checkSpellingAnswer);
+      frag.querySelector('#ankiSpellInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkSpellingAnswer(); });
+      frag.querySelector('#ankiFillCheckBtn')?.addEventListener('click', checkFillAnswer);
+      frag.querySelector('#ankiFillInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkFillAnswer(); });
+
+      // Multiple choice options
+      frag.querySelectorAll('.anki-mc-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const allOpts = frag.querySelectorAll('.anki-mc-option');
+          allOpts.forEach(b => b.classList.add('mc-locked'));
+          const correct = btn.dataset.correct;
+          const chosen = btn.dataset.answer;
+          allOpts.forEach(b => {
+            if (b.dataset.answer === correct) b.classList.add('mc-correct');
+            else if (b.dataset.answer === chosen) b.classList.add('mc-wrong');
+          });
+          if (chosen === correct) { sessionStreak++; toast('✅ Правильно!'); }
+          else { sessionStreak = 0; toast(`❌ Правильно: ${correct}`); }
+          setTimeout(() => {
+            document.getElementById('ankiRatingRow').style.display = 'block';
+          }, 600);
+        });
+      });
+
+      // TTS buttons
+      frag.querySelectorAll('[data-tts]').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); playEdgeTts(btn.dataset.tts, btn); });
+      });
+
+      // Rating buttons
+      frag.querySelectorAll('[data-rating]').forEach(btn => {
+        btn.addEventListener('click', () => rateAnki(parseInt(btn.dataset.rating)));
+      });
+
+      cont.innerHTML = '';
+      cont.appendChild(frag);
+
+      // Spelling letters interaction
+      if (cardMode === 'spelling') {
+        const sBoard = document.getElementById('ankiSpellBoard');
+        const sInput = document.getElementById('ankiSpellInput');
+        const checkBtn = document.getElementById('ankiSpellCheckBtn');
+        const targetClean = sBoard.dataset.target; // includes spaces
+        let pTyped = ''; // characters picked
+
+        document.querySelectorAll('.anki-letter-btn').forEach(b => {
+          b.addEventListener('click', function () {
+            if (this.style.visibility === 'hidden') return;
+            this.style.visibility = 'hidden';
+            pTyped += this.dataset.l;
+            sInput.value = pTyped;
+
+            // Rebuild board rendering spaces
+            let displayStr = '';
+            let typeIdx = 0;
+            for (let i = 0; i < targetClean.length; i++) {
+              if (targetClean[i] === ' ') {
+                displayStr += '&nbsp;&nbsp;&nbsp;';
+              } else {
+                if (typeIdx < pTyped.length) {
+                  displayStr += pTyped[typeIdx];
+                  typeIdx++;
+                } else {
+                  displayStr += '_';
+                }
+              }
+            }
+            sBoard.innerHTML = displayStr;
+
+            // Check if all letters typed
+            if (pTyped.length === targetClean.replace(/\s+/g, '').length) {
+              checkBtn.style.display = 'block';
+              checkSpellingAnswer();
+            }
+          });
+        });
+      }
+
+      // Auto-focus input for typing modes
+      const inputId = { audio: 'ankiAudioInput', 'uk-en': 'ankiUkEnInput', spelling: 'ankiSpellInput', fill: 'ankiFillInput' }[cardMode];
+      if (inputId) setTimeout(() => document.getElementById(inputId)?.focus(), 100);
+
+      // Auto-play audio mode
+      if (cardMode === 'audio') {
+        setTimeout(() => {
+          const ttsBtn = document.querySelector('#ankiCard [data-tts]');
+          if (ttsBtn) playEdgeTts(ttsBtn.dataset.tts, ttsBtn);
+        }, 400);
+      }
+    }
+
+    function startAnkiRepeat(mode) {
+      let words = mode === 'new'
+        ? state.words.filter(w => (w.repetitions || 0) === 0)
+        : [...state.words].filter(w => !w.mastered && w.srsStatus !== 'mastered');
+      if (!words.length) { toast(mode === 'new' ? 'Немає нових слів' : 'Немає слів на повторення'); return; }
+      ankiQueue = buildAnkiQueueFromWords(words);
+      ankiIndex = 0;
+      sessionStreak = 0;
+      ankiSessionStarted = true;
+      renderAnki();
+    }
+
+    function toggleAnkiStatusPicker() {
+      const p = document.getElementById('ankiStatusPicker');
+      const r = document.getElementById('ankiRepeatPicker');
+      if (!p) return;
+      if (p.style.display === 'none') {
+        p.style.display = 'block';
+        if (r) r.style.display = 'none';
+      } else {
+        p.style.display = 'none';
+      }
+    }
+
+    function toggleAnkiRepeatPicker() {
+      const p = document.getElementById('ankiRepeatPicker');
+      const s = document.getElementById('ankiStatusPicker');
+      if (!p) return;
+      if (p.style.display === 'none') {
+        p.style.display = 'block';
+        if (s) s.style.display = 'none';
+      } else {
+        p.style.display = 'none';
+      }
+    }
+
+    function startAnkiRepeatSelected() {
+      const selected = new Set(
+        Array.from(document.querySelectorAll('.anki-repeat-word:checked')).map(el => el.value)
+      );
+      if (!selected.size) { toast('Оберіть хоча б одне слово'); return; }
+      const words = state.words.filter(w => selected.has(w.word));
+      if (!words.length) { toast('Не вдалося зібрати вибрані слова'); return; }
+      ankiQueue = buildAnkiQueueFromWords(words);
+      ankiIndex = 0;
+      sessionStreak = 0;
+      ankiSessionStarted = true;
+      renderAnki();
+    }
+
+    function startAnkiFiltered() {
+      const getCheck = (id) => document.getElementById(id)?.checked;
+      const doNew = getCheck('ankiFiltNew');
+      const doRev = getCheck('ankiFiltRev');
+      const doHard = getCheck('ankiFiltHard');
+      const doMast = getCheck('ankiFiltMast');
+
+      const nowDay = Math.floor(Date.now() / 86400000);
+      const filtered = state.words.filter(w => {
+        const reps = w.repetitions || 0;
+        const eas = w.easeFactor || 2.5;
+        const due = w.dueDate || 0;
+
+        if (reps === 0 && doNew) return true; // New wording
+        if (reps > 0 && reps < 5 && eas < 1.5 && doHard) return true; // Difficult
+        if (reps > 5 && doMast) return true; // Mastered
+
+        // General review logic (if not Mastered/Difficult but needs review)
+        if (reps > 0 && nowDay >= due && doRev) return true;
+
+        return false;
+      });
+
+      if (!filtered.length) {
+        toast('За обраними фільтрами слів не знайдено!');
+        return;
+      }
+
+      ankiQueue = buildAnkiQueueFromWords(filtered);
+      ankiIndex = 0;
+      sessionStreak = 0;
+      ankiSessionStarted = true;
+      renderAnki();
+    }
+
+    function checkSpellingAnswer() {
+      const inp = document.getElementById('ankiSpellInput');
+      const fb = document.getElementById('ankiSpellFb');
+      if (!inp || !fb) return;
+
+      const typed = inp.value.trim().toLowerCase();
+      const w = getCurrentAnkiWord();
+      // compare letters only
+      const correctText = w?.word?.toLowerCase().replace(/[^a-z]/g, '') || '';
+
+      if (typed === correctText) {
+        fb.innerHTML = '<span style="color:#059669; font-weight:700;">✅ Правильно!</span>';
+        sessionStreak++;
+        autoPlayAnkiReveal(w.word);
+        setTimeout(() => document.getElementById('ankiRatingRow').style.display = 'block', 500);
+      } else {
+        fb.innerHTML = `<span style="color:#DC2626; font-weight:700;">❌ Неправильно. Правильно: <strong>${escHtml(w.word)}</strong></span>`;
+        sessionStreak = 0;
+        autoPlayAnkiReveal(w.word);
+        setTimeout(() => document.getElementById('ankiRatingRow').style.display = 'block', 800);
+      }
+    }
+
+    function checkFillAnswer() {
+      const inp = document.getElementById('ankiFillInput');
+      const fb = document.getElementById('ankiFillFb');
+      if (!inp || !fb) return;
+      const typed = inp.value.trim().toLowerCase();
+      const correct = getCurrentAnkiWord()?.word?.toLowerCase() || '';
+      if (typed === correct) {
+        fb.innerHTML = '<span style="color:#059669">✅ Правильно!</span>';
+        sessionStreak++;
+        setTimeout(() => document.getElementById('ankiRatingRow').style.display = 'block', 500);
+      } else {
+        fb.innerHTML = `<span style="color:#DC2626">❌ Правильно: <strong>${escHtml(correct)}</strong></span>`;
+        sessionStreak = 0;
+        setTimeout(() => document.getElementById('ankiRatingRow').style.display = 'block', 800);
+      }
+    }
+
+
+
+    function revealAnki() {
+      if (currentAnkiCardMode === 'audio') return;
+      const card = document.getElementById('ankiCard');
+      if (!card || card.classList.contains('revealed')) return;
+      card.classList.add('revealed');
+      card.style.cursor = 'default';
+      card.removeEventListener('click', revealAnki);
+      document.getElementById('ankiRatingRow').style.display = 'block';
+
+      // Auto-play if TTS is on
+      const w = getCurrentAnkiWord();
+      if (w && document.getElementById('ttsToggle')?.classList.contains('on')) {
+        autoPlayAnkiReveal(w.word);
+      }
+      TG?.HapticFeedback?.selectionChanged();
+    }
+
+    function normalizeAnswer(s) {
+      return String(s || '')
+        .toLowerCase()
+        .replace(/[^a-z\s'-]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function checkAnkiAudioAnswer() {
+      const w = getCurrentAnkiWord();
+      if (!w) return;
+      const input = document.getElementById('ankiAudioInput');
+      const fb = document.getElementById('ankiAudioFb');
+      const card = document.getElementById('ankiCard');
+      if (!input || !fb || !card) return;
+      const got = normalizeAnswer(input.value);
+      const expected = normalizeAnswer(w.word);
+      const ok = got && got === expected;
+      fb.textContent = ok ? '✅ Правильно!' : `❌ Правильно: ${w.word}`;
+      fb.style.color = ok ? '#059669' : '#DC2626';
+      card.classList.add('revealed');
+      card.style.cursor = 'default';
+      document.getElementById('ankiRatingRow').style.display = 'block';
+      autoPlayAnkiReveal(w.word);
+      TG?.HapticFeedback?.selectionChanged();
+    }
+
+    function checkUkEnAnswer() {
+      const w = getCurrentAnkiWord();
+      if (!w) return;
+      const input = document.getElementById('ankiUkEnInput');
+      const fb = document.getElementById('ankiUkEnFb');
+      const card = document.getElementById('ankiCard');
+      if (!input || !fb || !card) return;
+      const got = normalizeAnswer(input.value);
+      const expected = normalizeAnswer(w.word);
+      const ok = got && got === expected;
+      fb.textContent = ok ? '✅ Правильно!' : `❌ Правильно: ${w.word}`;
+      fb.style.color = ok ? '#059669' : '#DC2626';
+
+      const trBlock = document.getElementById('ankiUkEnTranslationBlock');
+      if (trBlock) trBlock.style.display = ok ? 'none' : 'block';
+
+      card.classList.add('revealed');
+      card.style.cursor = 'default';
+      document.getElementById('ankiRatingRow').style.display = 'block';
+      autoPlayAnkiReveal(w.word);
+      TG?.HapticFeedback?.selectionChanged();
+    }
+
+    function rateAnki(rating) {
+      const safeRating = Number.isInteger(rating) ? rating : 0;
+      const w = getCurrentAnkiWord();
+      if (!w) return;
+      const updated = srsNext(w, safeRating);
+      const key = normalizeWordKey(w.word);
+      const idx = state.words.findIndex(sw => normalizeWordKey(sw.word) === key);
+      if (idx !== -1) state.words[idx] = updated;
+
+      // Track session streak: 0=Again breaks streak, 2/3=Good/Easy increments
+      if (safeRating === 0) {
+        sessionStreak = 0;
+        const offset = Math.floor(Math.random() * 3) + 2; // 2, 3, or 4
+        const insertIndex = Math.min(ankiQueue.length, ankiIndex + 1 + offset);
+        ankiQueue.splice(insertIndex, 0, { word: updated, mode: currentAnkiCardMode });
+      } else if (safeRating >= 2) {
+        sessionStreak++;
+      }
+
+      markActivity();
+      saveState();
+      updateStatsUI();
+      ankiIndex++;
+      renderAnki();
+      TG?.HapticFeedback?.impactOccurred('light');
+    }
+
+    // ── Keyboard shortcuts for Anki ──────────────────────────────
+    document.addEventListener('keydown', (e) => {
+      // Only fire when on the Anki tab and not in an input
+      const ankiTab = document.getElementById('tab-anki');
+      if (!ankiTab?.classList.contains('active')) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        const card = document.getElementById('ankiCard');
+        if (card && !card.classList.contains('revealed') && currentAnkiCardMode === 'en-uk') {
+          revealAnki();
+        }
+      } else if (['1', '2', '3', '4'].includes(e.key)) {
+        const ratingRow = document.getElementById('ankiRatingRow');
+        if (ratingRow && ratingRow.style.display !== 'none') {
+          rateAnki(parseInt(e.key) - 1);
+        }
+      }
+    });
+
+
+    function uaDaysWord(n) {
+      const v = Math.abs(Number(n)) % 100;
+      const n1 = v % 10;
+      if (v > 10 && v < 20) return 'днів';
+      if (n1 > 1 && n1 < 5) return 'дні';
+      if (n1 === 1) return 'день';
+      return 'днів';
+    }
+
+    function setVocabSort(mode) {
+      state.vocabSort = String(mode || 'due');
+      saveState();
+      renderVocab(document.getElementById('searchInput')?.value || '');
+    }
+
+    function setVocabStatusFilter(status) {
+      vocabFilterStatus = status;
+      document.querySelectorAll('.vocab-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.vfil === status);
+      });
+      renderVocab(document.getElementById('searchInput')?.value || '');
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  VOCAB
+    // ╚══════════════════════════════════════════════════════════════╝
+    function renderVocab(filter = '') {
+      const list = document.getElementById('vocabList');
+      const statsEl = document.getElementById('vocabStats');
+      const lower = filter.toLowerCase();
+      const nowDay = Math.floor(Date.now() / 86400000);
+
+      const words = state.words.filter(w => {
+        // Text filter
+        if (filter && !w.word.toLowerCase().includes(lower) && !(w.info?.ukrainian || '').toLowerCase().includes(lower)) return false;
+
+        // Status filter
+        if (vocabFilterStatus !== 'all') {
+          const reps = w.repetitions || 0;
+          const status = w.srsStatus || 'new';
+          const isMast = !!(w.mastered || status === 'mastered');
+          const isDiff = status === 'difficult';
+          const isNew = !w.lastRated || status === 'new';
+
+          if (vocabFilterStatus === 'new' && !isNew) return false;
+          if (vocabFilterStatus === 'difficult' && !isDiff) return false;
+          if (vocabFilterStatus === 'mastered' && !isMast) return false;
+
+          // Review logic: must be repetition > 0, not mastered, not new
+          if (vocabFilterStatus === 'review') {
+            const due = w.dueDate || 0;
+            if (isMast || isNew || nowDay < due) return false;
+          }
+        }
+
+        return true;
+      });
+
+      statsEl.textContent = filter
+        ? `Знайдено: ${words.length} зі ${state.words.length}`
+        : `Всього: ${state.words.length} слів`;
+
+      if (!words.length) {
+        list.innerHTML = `<div style="text-align:center;padding:36px;color:var(--text-3)">
+      ${filter ? 'Нічого не знайдено' : 'Словник порожній — збережіть слова або синхронізуйтесь з ботом'}</div>`;
+        return;
+      }
+
+      const now = Date.now();
+      const mode = state.vocabSort || 'due';
+      const isMasteredWord = (w) => !!(w?.mastered || w?.srsStatus === 'mastered');
+      const sorted = [...words].sort((a, b) => {
+        if (mode === 'alpha_asc') {
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'alpha_desc') {
+          return b.word.localeCompare(a.word);
+        }
+        if (mode === 'newest') {
+          return Number(b.addedAt || 0) - Number(a.addedAt || 0);
+        }
+        if (mode === 'oldest') {
+          return Number(a.addedAt || 0) - Number(b.addedAt || 0);
+        }
+        if (mode === 'progress_desc') {
+          const ap = computeWordKnowledgeProgress(a, now);
+          const bp = computeWordKnowledgeProgress(b, now);
+          if (bp !== ap) return bp - ap;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'progress_asc') {
+          const am = isMasteredWord(a) ? 1 : 0;
+          const bm = isMasteredWord(b) ? 1 : 0;
+          if (am !== bm) return am - bm; // mastered always at the end in 0->100
+          const ap = computeWordKnowledgeProgress(a, now);
+          const bp = computeWordKnowledgeProgress(b, now);
+          if (ap !== bp) return ap - bp;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'reps_desc') {
+          const ar = Number(a.repetitions || 0);
+          const br = Number(b.repetitions || 0);
+          if (br !== ar) return br - ar;
+          const am = isMasteredWord(a) ? 1 : 0;
+          const bm = isMasteredWord(b) ? 1 : 0;
+          if (am !== bm) return am - bm;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'reps_asc') {
+          const ar = Number(a.repetitions || 0);
+          const br = Number(b.repetitions || 0);
+          if (ar !== br) return ar - br;
+          const am = isMasteredWord(a) ? 1 : 0;
+          const bm = isMasteredWord(b) ? 1 : 0;
+          if (am !== bm) return am - bm;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'mastered_first') {
+          const am = (a.mastered || a.srsStatus === 'mastered') ? 1 : 0;
+          const bm = (b.mastered || b.srsStatus === 'mastered') ? 1 : 0;
+          if (bm !== am) return bm - am;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'mastered_last') {
+          const am = (a.mastered || a.srsStatus === 'mastered') ? 1 : 0;
+          const bm = (b.mastered || b.srsStatus === 'mastered') ? 1 : 0;
+          if (am !== bm) return am - bm;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'source_tg_first') {
+          const at = a.source === 'telegram' ? 1 : 0;
+          const bt = b.source === 'telegram' ? 1 : 0;
+          if (bt !== at) return bt - at;
+          const am = isMasteredWord(a) ? 1 : 0;
+          const bm = isMasteredWord(b) ? 1 : 0;
+          if (am !== bm) return am - bm;
+          return a.word.localeCompare(b.word);
+        }
+        if (mode === 'source_custom_first') {
+          const ac = a.source === 'custom' ? 1 : 0;
+          const bc = b.source === 'custom' ? 1 : 0;
+          if (bc !== ac) return bc - ac;
+          const am = isMasteredWord(a) ? 1 : 0;
+          const bm = isMasteredWord(b) ? 1 : 0;
+          if (am !== bm) return am - bm;
+          return a.word.localeCompare(b.word);
+        }
+        const aDue = !a.nextReview || a.nextReview <= now;
+        const bDue = !b.nextReview || b.nextReview <= now;
+        if (aDue !== bDue) return aDue ? -1 : 1;
+        const am = isMasteredWord(a) ? 1 : 0;
+        const bm = isMasteredWord(b) ? 1 : 0;
+        if (am !== bm) return am - bm;
+        return a.word.localeCompare(b.word);
+      });
+
+      const frag = document.createDocumentFragment();
+      for (const w of sorted) {
+        const due = !w.nextReview || w.nextReview <= now;
+        const reps = w.repetitions || 0;
+        const nextMs = Number(w.nextReview || 0);
+        const daysLeft = nextMs > now ? Math.ceil((nextMs - now) / 86400000) : 0;
+        const progressPct = computeWordKnowledgeProgress(w, now);
+        const isMastered = !!(w.mastered || w.srsStatus === 'mastered');
+
+        let dotClass = 'vocab-dot-new';
+        let schedClass = 'vocab-sched-new';
+        let schedText = 'нове';
+        let statusText = 'Нове слово';
+        const srsStatus = w.mastered ? 'mastered' : (w.srsStatus || 'new');
+        if (isMastered) {
+          dotClass = 'vocab-dot-mastered';
+          schedClass = 'vocab-sched-mastered';
+          schedText = 'mastered';
+          statusText = 'Слово закріплено';
+        } else if (reps > 0 && due) {
+          dotClass = 'vocab-dot-due';
+          schedClass = 'vocab-sched-due';
+          schedText = 'сьогодні';
+          statusText = 'Повторити сьогодні';
+        } else if (reps > 0 && daysLeft === 1) {
+          dotClass = 'vocab-dot-soon';
+          schedClass = 'vocab-sched-soon';
+          schedText = 'завтра';
+          statusText = 'Наступний повтор: завтра';
+        } else if (reps > 0 && daysLeft > 1 && daysLeft <= 5) {
+          dotClass = 'vocab-dot-soon';
+          schedClass = 'vocab-sched-soon';
+          schedText = `+${daysLeft}д`;
+          statusText = `Наступний повтор: через ${daysLeft} ${uaDaysWord(daysLeft)}`;
+        } else if (reps > 0 && daysLeft > 5) {
+          dotClass = 'vocab-dot-later';
+          schedClass = 'vocab-sched-later';
+          schedText = 'пізніше';
+          statusText = `Наступний повтор: через ${daysLeft} ${uaDaysWord(daysLeft)}`;
+        }
+
+        if (!isMastered && srsStatus === 'difficult') {
+          dotClass = 'vocab-dot-difficult';
+          schedClass = 'vocab-sched-difficult';
+        } else if (!isMastered && srsStatus === 'easy') {
+          dotClass = 'vocab-dot-easy';
+          schedClass = 'vocab-sched-easy';
+        }
+
+        const item = document.createElement('div');
+        item.className = `vocab-item ${isMastered ? 'vocab-item-mastered' : ''}`.trim();
+        item.innerHTML = `
+      <div class="vocab-left">
+        <div class="vocab-top">
+          <div class="vocab-word">${escHtml(w.word)}</div>
+          <div class="vocab-trans">${escHtml(w.info?.ukrainian || '')}</div>
+        </div>
+        <div class="vocab-status-row">
+          <span class="vocab-dot ${dotClass}"></span>
+          <span class="vocab-next">${escHtml(statusText)}</span>
+          <span class="vocab-reps">${reps}×</span>
+        </div>
+        <div class="vocab-track"><div class="vocab-fill vocab-fill-${srsStatus}" style="width:${progressPct}%"></div></div>
+      </div>
+      <div class="vocab-right">
+        <span class="vocab-sched ${schedClass}">${escHtml(schedText)}</span>
+        <button class="vocab-del" title="Видалити слово" aria-label="Видалити слово">✕</button>
+      </div>`;
+        item.addEventListener('click', () => showWordDetail(w.word));
+        item.querySelector('.vocab-del')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openDeleteConfirm(w.word);
+        });
+        frag.appendChild(item);
+      }
+      list.innerHTML = '';
+      list.appendChild(frag);
+    }
+
+    function addCustomWord() {
+      ensureDeletedWordsState();
+      const en = (document.getElementById('customWordEn')?.value || '').trim();
+      const uk = (document.getElementById('customWordUk')?.value || '').trim();
+      const transcribe = (document.getElementById('customWordTranscribe')?.value || '').trim();
+      const pronUa = (document.getElementById('customWordPronUa')?.value || '').trim();
+      const example = (document.getElementById('customWordExample')?.value || '').trim();
+      const exampleUk = (document.getElementById('customWordExampleUk')?.value || '').trim();
+      const level = (document.getElementById('customWordLevel')?.value || 'beginner').trim();
+
+      if (!en || !uk) {
+        toast('Вкажіть English word та переклад');
+        return;
+      }
+
+      const normalized = en.toLowerCase();
+      const exists = state.words.some(w => String(w.word || '').toLowerCase() === normalized);
+      if (exists) {
+        toast('Це слово вже є у словнику');
+        return;
+      }
+
+      delete state.deletedWords[normalized];
+
+      state.words.push({
+        word: en,
+        level,
+        source: 'custom',
+        addedAt: Date.now(),
+        nextReview: Date.now(),
+        ef: 2.5,
+        repetitions: 0,
+        info: {
+          emoji: '✍️',
+          transcribe: transcribe || '',
+          definition: '',
+          ukrainian: uk,
+          pron_ua: pronUa || '',
+          example: example || '',
+          example_uk: exampleUk || ''
+        }
+      });
+
+      saveState();
+      updateStatsUI();
+      renderVocab(document.getElementById('searchInput')?.value || '');
+      toast(`✅ Додано: ${en}`);
+      closeCustomWordModal();
+
+      ['customWordEn', 'customWordUk', 'customWordTranscribe', 'customWordPronUa', 'customWordExample', 'customWordExampleUk']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+      document.getElementById('customWordEn')?.focus();
+    }
+
+    function filterVocab() {
+      renderVocab(document.getElementById('searchInput').value);
+    }
+
+    function showWordDetail(word) {
+      const w = state.words.find(sw => sw.word === word);
+      if (!w || !w.info) return;
+      currentWord = w;
+      currentLevel = w.level || 'beginner';
+
+      // Keep user in vocab and show details in popup
+      switchTab('vocab', document.querySelector('.tab[data-tab="vocab"]'));
+      openWordModal(w);
+    }
+
+    function openWordModal(wordObj) {
+      const modal = document.getElementById('wordModal');
+      const body = document.getElementById('wordModalBody');
+      if (!modal || !body) return;
+      const isMastered = !!(wordObj.mastered || wordObj.srsStatus === 'mastered');
+      const status = isMastered ? 'mastered' : (wordObj.srsStatus || 'new');
+      const statusNames = {
+        new: 'Нове',
+        again: 'Повтор сьогодні',
+        difficult: 'Складно (завтра)',
+        easy: 'Легко (7 днів)',
+        mastered: 'Mastered'
+      };
+      body.innerHTML = '';
+      body.appendChild(renderWordCard(wordObj));
+      const controls = document.createElement('div');
+      controls.className = 'word-status-editor';
+      controls.innerHTML = `
+    <div class="word-status-title">Статус слова в словнику</div>
+    <div class="word-status-current">Поточний: ${statusNames[status] || status}</div>
+    <div class="word-status-buttons">
+      <button type="button" class="word-status-btn ${status === 'again' ? 'active' : ''}" data-status="again">🔁 Повтор сьогодні</button>
+      <button type="button" class="word-status-btn ${status === 'difficult' ? 'active' : ''}" data-status="difficult">🟣 Складно (завтра)</button>
+      <button type="button" class="word-status-btn ${status === 'easy' ? 'active' : ''}" data-status="easy">✅ Легко (7 днів)</button>
+      <button type="button" class="word-status-btn ${status === 'mastered' ? 'active' : ''}" data-status="mastered">🏆 Mastered</button>
+    </div>`;
+      controls.querySelectorAll('[data-status]').forEach(btn => {
+        btn.addEventListener('click', () => applyWordStatusFromModal(wordObj.word, btn.dataset.status));
+      });
+      body.appendChild(controls);
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      refreshModalScrollLock();
+    }
+
+    function applyWordStatusFromModal(word, status) {
+      const ok = applyWordStatusByKey(word, status);
+      if (!ok) return;
+      closeWordModal();
+      const statusNames = {
+        again: 'Повтор сьогодні',
+        difficult: 'Складно (завтра)',
+        easy: 'Легко (7 днів)',
+        mastered: 'Mastered'
+      };
+      toast(`Статус: ${statusNames[status] || status}`);
+    }
+
+    function closeWordModal() {
+      const modal = document.getElementById('wordModal');
+      const body = document.getElementById('wordModalBody');
+      if (!modal || !body) return;
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      body.innerHTML = '';
+      refreshModalScrollLock();
+    }
+
+    function deleteWordFast(word) {
+      const prevLen = state.words.length;
+      const key = normalizeWordKey(word);
+      ensureDeletedWordsState();
+      state.deletedWords[key] = Date.now();
+      state.words = state.words.filter(w => normalizeWordKey(w.word) !== key);
+      if (state.words.length === prevLen) return;
+      saveState();
+      if (state.tgUserId) {
+        deleteWordOnServer(state.tgUserId, word);
+      }
+      closeWordModal();
+      renderVocab(document.getElementById('searchInput')?.value || '');
+      updateStatsUI();
+      toast(`🗑 Видалено: ${word}`);
+      TG?.HapticFeedback?.impactOccurred('light');
+    }
+
+    function openDeleteConfirm(word) {
+      const w = String(word || '').trim();
+      if (!w) return;
+      pendingDeleteWord = w;
+      const modal = document.getElementById('deleteConfirmModal');
+      const text = document.getElementById('deleteConfirmText');
+      if (!modal || !text) return;
+      text.textContent = `Видалити слово "${w}" зі словника?`;
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      refreshModalScrollLock();
+    }
+
+    function closeDeleteConfirm() {
+      const modal = document.getElementById('deleteConfirmModal');
+      if (!modal) return;
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      pendingDeleteWord = '';
+      refreshModalScrollLock();
+    }
+
+    function confirmDeleteWord() {
+      const word = pendingDeleteWord;
+      closeDeleteConfirm();
+      if (!word) return;
+      deleteWordFast(word);
+    }
+
+    function refreshModalScrollLock() {
+      const hasOpenModal =
+        document.getElementById('customWordModal')?.classList.contains('show') ||
+        document.getElementById('wordModal')?.classList.contains('show') ||
+        document.getElementById('deleteConfirmModal')?.classList.contains('show');
+      document.body.classList.toggle('modal-open', !!hasOpenModal);
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  STATS
+    // ╚══════════════════════════════════════════════════════════════╝
+    function markActivity() {
+      const today = new Date().toISOString().split('T')[0];
+      state.activity[today] = (state.activity[today] || 0) + 1;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      if (state.lastDate === today) {
+        // already counted today
+      } else if (state.lastDate === yesterday || !state.lastDate) {
+        state.streak = (state.streak || 0) + 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastDate = today;
+      saveState();
+      updateStatsUI();
+      if (state.tgUserId) {
+        syncProgressToServer(state.tgUserId);
+      }
+    }
+
+    function updateStatsUI() {
+      const streak = state.streak || 0;
+      const now = Date.now();
+      const tomorrowKey = new Date(now + 86400000).toISOString().split('T')[0];
+      const isMastered = (w) => !!(w?.mastered || w?.srsStatus === 'mastered');
+
+      let newWords = 0, tomorrowWords = 0, difficultWords = 0, masteredWords = 0;
+      const lvlCount = { zero: 0, beginner: 0, intermediate: 0, advanced: 0 };
+      const lvlTargets = { zero: 100, beginner: 600, intermediate: 2000, advanced: 5000 };
+
+      for (const w of state.words) {
+        const status = w.srsStatus || 'new';
+        if (isMastered(w)) masteredWords++;
+        if (!w.lastRated || status === 'new') newWords++;
+        if (status === 'difficult') difficultWords++;
+        const nextKey = w.nextReview ? new Date(Number(w.nextReview)).toISOString().split('T')[0] : '';
+        if (nextKey && nextKey === tomorrowKey) tomorrowWords++;
+
+        // Level progress
+        if (lvlCount.hasOwnProperty(w.level)) lvlCount[w.level]++;
+      }
+
+      document.getElementById('streakBadge').textContent = `🔥 ${streak} днів`;
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = String(val);
+      };
+      setText('statTotal', state.words.length);
+      setText('statStreak', streak);
+      setText('statNewWords', newWords);
+      setText('statTomorrow', tomorrowWords);
+      setText('statDifficult', difficultWords);
+      setText('statMastered', masteredWords);
+      const dueCount = getDueWords().length;
+      setText('statDue', dueCount);
+      const dueChip = document.querySelector('.stats-due-chip');
+      if (dueChip) dueChip.classList.toggle('has-due', dueCount > 0);
+
+      // Update Level Bars
+      ['zero', 'beginner', 'intermediate', 'advanced'].forEach(l => {
+        const count = lvlCount[l] || 0;
+        const target = lvlTargets[l];
+        const pct = Math.min(100, Math.round((count / target) * 100));
+        const capL = l.charAt(0).toUpperCase() + l.slice(1);
+        setText(`goal${capL}`, `${count}/${target}`);
+        const bar = document.getElementById(`bar${capL}`);
+        if (bar) bar.style.width = pct + '%';
+      });
+    }
+
+
+    function renderStats() {
+      updateStatsUI();
+      const cal = document.getElementById('calendarRow');
+      const today = new Date();
+      let html = '';
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        const done = (state.activity[key] || 0) > 0;
+        const isToday = i === 0;
+        html += `<div class="cal-day ${done ? 'done' : ''} ${isToday ? 'today' : ''}" title="${key}">${d.getDate()}</div>`;
+      }
+      cal.innerHTML = html;
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  SETTINGS RESTORE
+    // ╚══════════════════════════════════════════════════════════════╝
+    function restoreSettings() {
+      // Ensure API URL is set on localhost
+      if ((!state.apiUrl || !state.apiUrl.trim()) && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        state.apiUrl = location.origin;
+        const inp = document.getElementById('apiUrlInput');
+        if (inp) inp.value = location.origin;
+      }
+      if (state.apiUrl) document.getElementById('apiUrlInput').value = state.apiUrl;
+      if (state.geminiKey) document.getElementById('geminiKeyInput').value = state.geminiKey;
+      if (state.voice) {
+        const sel = document.getElementById('voiceSelect');
+        if (sel) sel.value = state.voice;
+      }
+      const sortSel = document.getElementById('vocabSortSelect');
+      if (sortSel) sortSel.value = state.vocabSort || 'due';
+      if (state.tgUserId) document.getElementById('manualTgIdInput').value = state.tgUserId;
+      if (!state.ttsEnabled) document.getElementById('ttsToggle')?.classList.remove('on');
+      if (!state.autoAnki) document.getElementById('autoAnkiToggle')?.classList.remove('on');
+      if (state.ankiAutoAudio === false) document.getElementById('ankiAutoAudioToggle')?.classList.remove('on');
+      if (state.autoSync === false) document.getElementById('autoSyncToggle')?.classList.remove('on');
+      restoreLevelUI();
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  UTILS
+    // ╚══════════════════════════════════════════════════════════════╝
+    let toastTimer = null;
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify({ words: state.words, activity: state.activity, streak: state.streak }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'engzap_vocab.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    }
+
+    function clearData() {
+      if (!confirm('Видалити всі локальні дані English Zap? Цю дію не можна скасувати.')) return;
+      localStorage.removeItem(DB_KEY);
+      location.reload();
+    }
+
+    // ╔══════════════════════════════════════════════════════════════╗
+    //  INIT
+    // ╚══════════════════════════════════════════════════════════════╝
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('customWordModal')?.classList.contains('show')) {
+          closeCustomWordModal();
+        }
+      });
+
+      document.getElementById('wordModalClose')?.addEventListener('click', closeWordModal);
+      document.getElementById('wordModalOverlay')?.addEventListener('click', closeWordModal);
+      document.getElementById('deleteConfirmOverlay')?.addEventListener('click', closeDeleteConfirm);
+      document.getElementById('deleteConfirmCancel')?.addEventListener('click', closeDeleteConfirm);
+      document.getElementById('deleteConfirmOk')?.addEventListener('click', confirmDeleteWord);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeWordModal();
+          closeDeleteConfirm();
+        }
+      });
+
+      migrateApiUrlDefault();
+      ensureDeletedWordsState();
+      state.apiUrl = resolveApiBaseUrl();
+      saveState();
+      restoreSettings();
+      initTelegram();
+      updateStatsUI();
+
+      // Auto-sync if we have a user ID
+      if (state.tgUserId) {
+        updateSyncUI('connecting', 'Автосинхронізація…');
+        await syncWithBot(state.tgUserId);
+      }
+
+      // Start auto-sync timer
+      if (state.autoSync !== false) startAutoSync();
+
+      // Notify about due Anki cards
+      const due = getDueWords().length;
+      if (due > 0 && state.autoAnki) {
+        setTimeout(() => toast(`🃏 ${due} карток готові до повторення!`), 1500);
+      }
+
+      // Default screen is vocab; render dictionary list immediately
+      renderVocab();
+    });
+  </script>
+</body>
+
+</html>
