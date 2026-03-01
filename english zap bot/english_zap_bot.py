@@ -20,18 +20,9 @@ import socket
 from pathlib import Path
 from datetime import datetime, time, timezone
 
-# Load .env file so the bot works even when started directly (not via run script)
-try:
-    _env_path = Path(__file__).resolve().parent / '.env'
-    if _env_path.exists():
-        with _env_path.open() as _ef:
-            for _line in _ef:
-                _line = _line.strip()
-                if _line and not _line.startswith('#') and '=' in _line:
-                    _k, _, _v = _line.partition('=')
-                    os.environ[_k.strip()] = _v.strip()
-except Exception:
-    pass
+# Load .env file properly
+from dotenv import load_dotenv
+load_dotenv()
 from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup,
     BotCommand, WebAppInfo, MenuButtonWebApp,
@@ -368,6 +359,8 @@ async def ask_gemini(word: str, level: str) -> dict:
         info["definition"] = "Gemini API key is missing."
         info["ukrainian"] = "Ключ Gemini не налаштований."
         return info
+
+    logger.info(f"Using Gemini Key: {GEMINI_KEY[:8]}...{GEMINI_KEY[-4:]} (Model: {GEMINI_MODEL})")
 
     hint = {
         "zero": "Use extremely simple Ukrainian. Max 1 very short sentence.",
