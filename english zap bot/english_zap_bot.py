@@ -54,7 +54,7 @@ PROJECT_ROOT = BASE_DIR.parent
 
 BOT_TOKEN = os.getenv("ENGLISH_ZAP_BOT_TOKEN", "").strip()
 GEMINI_KEY = os.getenv("ENGLISH_ZAP_GEMINI_KEY", "").strip()
-GEMINI_MODEL = os.getenv("ENGLISH_ZAP_GEMINI_MODEL", "gemini-2.5-flash").strip()
+GEMINI_MODEL = os.getenv("ENGLISH_ZAP_GEMINI_MODEL", "gemini-1.5-flash").strip()
 OWNER_CHAT_ID = int(os.getenv("ENGLISH_ZAP_OWNER_CHAT_ID", "861217697"))
 VOICE = os.getenv("ENGLISH_ZAP_VOICE", "en-GB-RyanNeural")
 
