@@ -29,7 +29,7 @@ try:
                 _line = _line.strip()
                 if _line and not _line.startswith('#') and '=' in _line:
                     _k, _, _v = _line.partition('=')
-                    os.environ.setdefault(_k.strip(), _v.strip())
+                    os.environ[_k.strip()] = _v.strip()
 except Exception:
     pass
 from telegram import (
