@@ -388,7 +388,7 @@ EXAMPLE_UK: (Ukrainian translation of example)"""
 
     body = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {
         "temperature": 0.7, "maxOutputTokens": 1500}}
-    models_to_try = list(dict.fromkeys([GEMINI_MODEL, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]))
+    models_to_try = list(dict.fromkeys([GEMINI_MODEL, "gemini-1.5-flash", "gemini-1.5-pro"]))
     api_versions = ["v1beta", "v1"]
     try:
         resp = None
