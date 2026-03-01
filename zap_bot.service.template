@@ -1,0 +1,17 @@
+[Unit]
+Description=English Zap Telegram Bot Service
+After=network.target
+
+[Service]
+# Replace 'your_user' with your VPS username (e.g., 'pi' or 'root')
+User=your_user
+WorkingDirectory=/home/your_user/bots/english-zap-bot/english zap bot
+Environment="PATH=/home/your_user/bots/english-zap-bot/venv/bin"
+# Ensure the .env file is in the WorkingDirectory
+ExecStart=/home/your_user/bots/english-zap-bot/venv/bin/python3 english_zap_bot.py
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

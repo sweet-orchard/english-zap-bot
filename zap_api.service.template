@@ -1,0 +1,17 @@
+[Unit]
+Description=English Zap API Service
+After=network.target
+
+[Service]
+# Replace 'your_user' with your VPS username (e.g., 'pi' or 'root')
+User=your_user
+WorkingDirectory=/home/your_user/bots/english-zap-bot/english zap bot
+Environment="PATH=/home/your_user/bots/english-zap-bot/venv/bin"
+# Ensure the .env file is in the WorkingDirectory
+ExecStart=/home/your_user/bots/english-zap-bot/venv/bin/uvicorn api_server:app --host 0.0.0.0 --port 8765
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

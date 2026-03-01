@@ -364,20 +364,24 @@ async def ask_gemini(word: str, level: str) -> dict:
 
     hint = {
         "zero": "Use extremely simple Ukrainian. Max 1 very short sentence.",
-        "beginner": "Use very simple words. Definition in Ukrainian.",
-        "intermediate": "Use clear everyday language. Definition in Ukrainian.",
-        "advanced": "Use sophisticated English. Definition in English.",
-    }.get(level, "Use simple language.")
+        "beginner": "Use simple Ukrainian. Provide a clear, detailed definition.",
+        "intermediate": "Use natural Ukrainian. Provide a deep, comprehensive definition.",
+        "advanced": "Use sophisticated Ukrainian. Provide a very detailed, nuanced definition.",
+    }.get(level, "Use clear Ukrainian.")
     prompt = f"""You are an English learning assistant for Ukrainian speakers.
-Explain: "{word}"  Level: {level}  {hint}
-Reply ONLY in this exact format with no extra text:
-EMOJI: (one emoji)
-TRANSCRIBE: (IPA like /həʊm/)
-DEFINITION: (short definition)
-TRANSLATION: (Ukrainian translation)
-PRON_UA: (pronunciation in Ukrainian letters)
-EXAMPLE: (English sentence)
-EXAMPLE_UK: (Ukrainian translation of example)"""
+Explain the English word or phrase: "{word}"
+Target Level: {level}
+Instructions: {hint}
+The DEFINITION must be in Ukrainian, detailed, and informative.
+
+Reply ONLY in this exact format:
+EMOJI: (one related emoji)
+TRANSCRIBE: (IPA pronunciation)
+DEFINITION: (detailed explanation in UKRAINIAN)
+TRANSLATION: (Ukrainian translation of the word)
+PRON_UA: (pronunciation using Ukrainian letters)
+EXAMPLE: (English sentence using the word)
+EXAMPLE_UK: (Ukrainian translation of the example)"""
 
     body = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {
         "temperature": 0.7, "maxOutputTokens": 1500}}
@@ -401,55 +405,26 @@ EXAMPLE_UK: (Ukrainian translation of example)"""
                 try:
                     async with httpx.AsyncClient(timeout=25) as client:
                         resp = await client.post(url, json=body)
-                        if resp.status_code == 404:
-                            last_error = Exception(f"Model {model} not found")
-                            continue
                         data = resp.json()
-                        if "error" in data:
-                            err = data["error"]
-                            msg = err.get("message", "Unknown error")
-                            code = err.get("code") or resp.status_code
-                            if resp.status_code == 403:
-                                raise RuntimeError("403 Permission denied. Enable Generative Language API at console.cloud.google.com and check API key restrictions.") from None
-                            if resp.status_code == 400:
-                                if "location" in msg.lower() or "supported" in msg.lower():
-                                    raise RuntimeError("400 Location not supported. Gemini API may not be available in your region.") from None
-                                if "billing" in msg.lower() or "FAILED_PRECONDITION" in msg:
-                                    raise RuntimeError("400 Billing required. Enable billing in Google AI Studio / Cloud Console.") from None
-                                raise RuntimeError(f"400 Bad request: {msg}") from None
-                            if resp.status_code == 401:
-                                raise RuntimeError("401 Invalid API key. Check your key at aistudio.google.com/apikey") from None
-                            if resp.status_code == 429:
-                                raise RuntimeError("429 Rate limit exceeded. Try again in a moment.") from None
-                            raise Exception(msg)
+                        if resp.status_code != 200 or "error" in data:
+                            msg = data.get("error", {}).get("message", "Unknown error")
+                            logger.warning(f"Gemini {resp.status_code} with {model}: {msg}")
+                            last_error = Exception(f"{resp.status_code}: {msg}")
+                            continue
+                        # Success!
                         break
-                except httpx.HTTPStatusError as e:
-                    last_error = e
-                    if e.response.status_code in (400, 401, 403):
-                        try:
-                            err_data = e.response.json()
-                            msg = err_data.get("error", {}).get("message", str(e))
-                        except Exception:
-                            msg = str(e)
-                        if e.response.status_code == 403:
-                            raise RuntimeError("403 Permission denied. Enable Generative Language API and check API key.") from e
-                        if e.response.status_code == 400 and ("location" in msg.lower() or "supported" in msg.lower()):
-                            raise RuntimeError("400 Location not supported. Enable billing or try a different region.") from e
-                        raise RuntimeError(f"Gemini {e.response.status_code}: {msg}") from e
-                    if e.response.status_code == 404:
-                        continue
-                    raise
-                except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+                except Exception as e:
                     last_network_error = e
+                    logger.warning(f"Network error with {model}: {e}")
+                    continue
             if resp and resp.status_code == 200:
-                data = resp.json()
-                if "error" not in data and data.get("candidates"):
-                    break
-        if resp is None or resp.status_code != 200:
+                break
+
+        if not resp or resp.status_code != 200:
             if last_error:
                 raise last_error
             if last_network_error:
-                raise RuntimeError(f"Gemini network error: {last_network_error}") from last_network_error
+                raise last_network_error
             raise RuntimeError("Gemini request failed.")
         data = resp.json()
         if "error" in data:
