@@ -341,17 +341,14 @@ async def ask_gemini(word: str, level: str) -> dict:
         }
 
     def extract_label(text: str, label: str) -> str:
-        # Accept plain labels and markdown-styled variants like "**LABEL:** value"
-        patterns = [
-            rf"(?im)^\s*\*{{0,2}}{re.escape(label)}\*{{0,2}}\s*:\s*(.+?)\s*$",
-            rf"(?im)^\s*[-•]?\s*\*{{0,2}}{re.escape(label)}\*{{0,2}}\s*:\s*(.+?)\s*$",
-        ]
-        for pattern in patterns:
-            m = re.search(pattern, text)
-            if m:
-                value = m.group(1).strip().strip("*_`")
-                if value:
-                    return value
+        # Use a more flexible regex that finds the label anywhere and captures until the next label or end of text.
+        # Labels are usually something like "EXAMPLE:" or "**EXAMPLE:**" or "- EXAMPLE:"
+        # We capture everything after the label until another label starts (using lookahead for uppercase word + colon).
+        pattern = rf"(?is)(?:^|\n|[\s\*_-])\*{{0,2}}{re.escape(label)}\*{{0,2}}\s*:\s*(.*?)(?=\s*\n\s*\*{{0,2}}[A-Z_]+\*{{0,2}}\s*:|$)"
+        m = re.search(pattern, text)
+        if m:
+            val = m.group(1).strip().strip("*_`").strip()
+            return val
         return ""
 
     if not GEMINI_KEY:
@@ -368,13 +365,13 @@ async def ask_gemini(word: str, level: str) -> dict:
         "intermediate": "Use natural Ukrainian. Provide a deep, comprehensive definition.",
         "advanced": "Use sophisticated Ukrainian. Provide a very detailed, nuanced definition.",
     }.get(level, "Use clear Ukrainian.")
-    prompt = f"""You are an English learning assistant for Ukrainian speakers.
-Explain the English word or phrase: "{word}"
+    prompt = f"""Explain the English word or phrase: "{word}"
 Target Level: {level}
+Assistant Role: English learning assistant for Ukrainian speakers.
 Instructions: {hint}
-The DEFINITION must be in Ukrainian, detailed, and informative.
+The DEFINITION must be in Ukrainian, detailed, and informative. No introductory or trailing text. 
 
-Reply ONLY in this exact format:
+STRICT OUTPUT FORMAT (One field per line):
 EMOJI: (one related emoji)
 TRANSCRIBE: (IPA pronunciation)
 DEFINITION: (detailed explanation in UKRAINIAN)
